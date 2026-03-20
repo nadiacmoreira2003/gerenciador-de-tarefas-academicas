@@ -1395,7 +1395,7 @@ function gerarEventos(disc) {
 
         eventos.push({
             key: `${id}_prova_elab_${i}`, dataEmail: dataEmailElab, prazo: prazoElab,
-            tipo: 'elaboracao_prova', titulo: `Solicitar Elaboração da ${prova.nome}`,
+            tipo: 'elaboracao_prova', titulo: `Solicitar Elaboração: ${prova.nome}`,
             descricao: `Enviar modelo de prova para ${disc.nomeProfessor} elaborar até ${formatDate(prazoElab)}`,
             disc: disc, prova: prova, provaIndex: i,
         });
@@ -1419,7 +1419,7 @@ function gerarEventos(disc) {
 
         eventos.push({
             key: `${id}_prova_bib_${i}`, dataEmail: dataBib, prazo: dataProva,
-            tipo: 'envio_biblioteca', titulo: `Enviar ${prova.nome} para Impressão na Biblioteca`,
+            tipo: 'envio_biblioteca', titulo: `Solicitar Impressão: ${prova.nome}`,
             descricao: `Anexar a prova recebida e enviar para a biblioteca com ${prova.copias || 30} cópias. Prova em ${formatDate(dataProva)}`,
             disc: disc, prova: prova, provaIndex: i,
         });
@@ -1431,7 +1431,7 @@ function gerarEventos(disc) {
 
         eventos.push({
             key: `${id}_prova_corr_${i}`, dataEmail: dataEmailCorrecao, prazo: prazoCorrecao,
-            tipo: 'correcao_prova', titulo: `Solicitar Correção da ${prova.nome}`,
+            tipo: 'correcao_prova', titulo: `Solicitar Correção: ${prova.nome}`,
             descricao: `Pedir que ${disc.nomeProfessor} corrija, lance no portal e entregue até ${formatDate(prazoCorrecao)}`,
             disc: disc, prova: prova, provaIndex: i,
         });
@@ -1446,7 +1446,7 @@ function gerarEventos(disc) {
 
         eventos.push({
             key: `${id}_trab_corr_${i}`, dataEmail: dataEmailCorr, prazo: prazoCorr,
-            tipo: 'correcao_trabalho', titulo: `Solicitar Correção do ${trab.nome}`,
+            tipo: 'correcao_trabalho', titulo: `Solicitar Correção: ${trab.nome}`,
             descricao: `Pedir que ${disc.nomeProfessor} corrija trabalhos, lance no portal e entregue até ${formatDate(prazoCorr)}`,
             disc: disc, trabalho: trab, trabalhoIndex: i,
         });
