@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1399,8 +1400,25 @@ function gerarEventos(disc) {
             disc: disc, prova: prova, provaIndex: i,
         });
 
+        // Verificar se professor enviou — dia útil seguinte ao prazo de elaboração
+        const verificacaoDate = new Date(prazoElab);
+        verificacaoDate.setDate(verificacaoDate.getDate() + 1);
+        const dataVerificacao = proximoDiaUtil(verificacaoDate);
+
         eventos.push({
-            key: `${id}_prova_bib_${i}`, dataEmail: prazoElab, prazo: dataProva,
+            key: `${id}_prova_verif_${i}`, dataEmail: dataVerificacao, prazo: dataVerificacao,
+            tipo: 'verificacao_envio', titulo: `Verificar Envio da Prova: ${prova.nome}`,
+            descricao: `Confirmar se ${disc.nomeProfessor} enviou a ${prova.nome} (prazo era ${formatDate(prazoElab)}). Se não recebeu, enviar cobrança urgente.`,
+            disc: disc, prova: prova, provaIndex: i,
+        });
+
+        // Enviar para biblioteca — 1 dia útil após a verificação
+        const bibDate = new Date(dataVerificacao);
+        bibDate.setDate(bibDate.getDate() + 1);
+        const dataBib = proximoDiaUtil(bibDate);
+
+        eventos.push({
+            key: `${id}_prova_bib_${i}`, dataEmail: dataBib, prazo: dataProva,
             tipo: 'envio_biblioteca', titulo: `Enviar para Biblioteca: ${prova.nome}`,
             descricao: `Anexar a prova recebida e enviar para a biblioteca com ${prova.copias || 30} cópias. Prova em ${formatDate(dataProva)}`,
             disc: disc, prova: prova, provaIndex: i,
@@ -1457,6 +1475,15 @@ function gerarEmail(evento) {
             assunto = `Elaboração de Prova – ${disc} – ${evento.prova.nome}`;
             corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nSolicito a elaboração da *${evento.prova.nome}* da disciplina *${disc}*, cuja aplicação está prevista para ${formatDate(parseDate(evento.prova.data))}.\n\nSegue em anexo o modelo de prova para preenchimento.\n\nPrazo para envio da prova elaborada: ${prazo}\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
             break;
+        case 'verificacao_envio': {
+            const dataProvaVer = parseDate(evento.prova.data);
+            const dataEmailElabVer = new Date(dataProvaVer);
+            dataEmailElabVer.setDate(dataEmailElabVer.getDate() - 15);
+            const prazoElabVer = adicionarDiasUteis(dataEmailElabVer, 7);
+            assunto = `URGENTE – Envio de Prova Pendente – ${disc} – ${evento.prova.nome}`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nEntro em contato para informar que o prazo para envio da *${evento.prova.nome}* da disciplina *${disc}* expirou em ${formatDate(prazoElabVer)} e a prova ainda não foi recebida pela coordenação.\n\nA aplicação está prevista para ${formatDate(dataProvaVer)}, sendo necessário tempo para impressão das cópias. Por isso, solicito com urgência o envio da prova elaborada o mais breve possível.\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
+            break;
+        }
         case 'correcao_prova':
             assunto = `Correção de Prova – ${disc} – ${evento.prova.nome}`;
             corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nInformo que a *${evento.prova.nome}* da disciplina *${disc}* foi aplicada em ${formatDate(parseDate(evento.prova.data))}.\n\nSolicito que:\n• Realize a correção das provas;\n• Lance as notas no portal acadêmico;\n• Envie mensagem à turma informando que as notas foram lançadas;\n• Entregue as provas corrigidas aos alunos, fisicamente ou por e-mail.\n\nPrazo: ${prazo}\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
