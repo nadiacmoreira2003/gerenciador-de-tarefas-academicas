@@ -189,6 +189,29 @@
                        onkeydown="if(event.key==='Enter')fazerLogin()">
             </div>
             <button class="btn btn-primary" onclick="fazerLogin()">Entrar</button>
+            <div class="toggle-link" style="margin-top:14px;">
+                <a onclick="mostrarEsqueceuSenha()">Esqueci minha senha</a>
+            </div>
+        </div>
+
+        <!-- Esqueci minha senha -->
+        <div id="esqueceuSenhaScreen" style="display:none;">
+            <div style="text-align:center; padding:16px 0 20px;">
+                <div style="font-size:2.5rem; margin-bottom:10px;">🔑</div>
+                <h3 style="color:#1a237e; margin-bottom:6px;">Redefinir Senha</h3>
+                <p style="font-size:0.85rem; color:#666;">Informe seu e-mail para receber o link de redefinição.</p>
+            </div>
+            <div class="login-error" id="resetError"></div>
+            <div class="login-success" id="resetSuccess"></div>
+            <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" id="resetEmail" placeholder="seu@email.com"
+                       onkeydown="if(event.key==='Enter')enviarResetSenha()">
+            </div>
+            <button class="btn btn-primary" onclick="enviarResetSenha()">Enviar Link</button>
+            <div class="toggle-link" style="margin-top:12px;">
+                <a onclick="voltarLogin()">Voltar ao login</a>
+            </div>
         </div>
 
         <!-- Configuração Inicial (primeiro uso) -->
@@ -656,6 +679,41 @@ function mostrarTelaLogin() {
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('setupScreen').style.display = 'none';
     document.getElementById('changePassScreen').style.display = 'none';
+    document.getElementById('esqueceuSenhaScreen').style.display = 'none';
+}
+
+function mostrarEsqueceuSenha() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('esqueceuSenhaScreen').style.display = 'block';
+    document.getElementById('resetEmail').value = '';
+    hideMsg('resetError'); hideMsg('resetSuccess');
+}
+
+async function enviarResetSenha() {
+    const email = document.getElementById('resetEmail').value.trim();
+    hideMsg('resetError'); hideMsg('resetSuccess');
+    if (!email) { showLoginError('resetError', 'Informe seu e-mail.'); return; }
+
+    showLoading('Verificando...');
+    try {
+        // Verifica se o e-mail existe na lista de usuários do sistema
+        const snapshot = await db.collection('users').where('email', '==', email.toLowerCase()).get();
+        if (snapshot.empty) {
+            hideLoading();
+            showLoginError('resetError', 'E-mail não encontrado no sistema. Solicite acesso ao administrador.');
+            return;
+        }
+        await auth.sendPasswordResetEmail(email);
+        hideLoading();
+        showLoginSuccess('resetSuccess', 'Link enviado! Verifique sua caixa de entrada.');
+    } catch (err) {
+        hideLoading();
+        if (err.code === 'auth/user-not-found') {
+            showLoginError('resetError', 'E-mail não encontrado no sistema.');
+        } else {
+            showLoginError('resetError', 'Erro ao enviar. Tente novamente.');
+        }
+    }
 }
 
 function mostrarTelaSetup() {
@@ -877,7 +935,7 @@ async function renderAdminUsuarios() {
                     <option value="convidado" ${u.role!=='admin'?'selected':''}>Coordenador</option>
                 </select></td>
                 <td>${u.mustChangePassword ? '<span class="badge badge-pending">Pendente</span>' : '<span class="badge badge-done">Ativo</span>'}</td>
-                <td>${!isMe ? `<button class="btn btn-primary btn-sm" onclick="adminSalvarUsuario('${u.id}')">Salvar</button> <button class="btn btn-danger btn-sm" onclick="adminResetarSenha('${u.id}')">Resetar Senha</button>` : '—'}</td>
+                <td>${!isMe ? `<button class="btn btn-primary btn-sm" onclick="adminSalvarUsuario('${u.id}')">Salvar</button> <button class="btn btn-secondary btn-sm" onclick="adminResetarSenha('${u.id}')">Resetar Senha</button> <button class="btn btn-danger btn-sm" onclick="adminExcluirUsuario('${u.id}', '${escapeHtml(u.nome)}')">Excluir</button>` : '—'}</td>
             </tr>`;
         });
         html += '</tbody></table>';
@@ -893,6 +951,18 @@ async function adminSalvarUsuario(uid) {
         await db.collection('users').doc(uid).update({ nome: novoNome, role: novoRole });
         showToast('Dados atualizados!'); renderAdminUsuarios();
     } catch (err) { showToast('Erro ao atualizar.', true); }
+}
+
+async function adminExcluirUsuario(uid, nome) {
+    if (!confirm(`Tem certeza que deseja excluir o usuário "${nome}"?\n\nOs dados de disciplinas deste usuário também serão removidos. Esta ação não pode ser desfeita.`)) return;
+    try {
+        await db.collection('users').doc(uid).delete();
+        await db.collection('userData').doc(uid).delete();
+        showToast(`Usuário ${nome} excluído.`);
+        renderAdminUsuarios();
+    } catch (err) {
+        showToast('Erro ao excluir usuário.', true);
+    }
 }
 
 async function adminResetarSenha(uid) {
