@@ -904,7 +904,10 @@ function iniciarApp() {
     document.getElementById('perfilNome').textContent = currentUserProfile.nome;
     document.getElementById('perfilEmail').textContent = currentUserProfile.email;
     document.getElementById('perfilRole').textContent = currentUserProfile.role === 'admin' ? 'Administrador' : 'Coordenador';
-    switchTab('cadastro');
+    const abas = ['cadastro', 'disciplinas', 'timeline', 'perfil'];
+    if (currentUserProfile.role === 'admin') abas.push('admin');
+    const abaSalva = sessionStorage.getItem('activeTab');
+    switchTab(abas.includes(abaSalva) ? abaSalva : 'cadastro');
     if (currentUserProfile.role === 'admin') renderAdminUsuarios();
 }
 
@@ -1363,7 +1366,7 @@ async function excluirDisciplina(id) {
     const arr = getDisciplinas().filter(d => d.id !== id);
     const st = getStatus(); Object.keys(st).forEach(k => { if (k.startsWith(id+'_')) delete st[k]; });
     await saveDisciplinas(arr); await saveStatus(st);
-    renderDisciplinas(); renderTimeline(); renderPendencias();
+    renderDisciplinas(); renderTimeline();
     showToast('Disciplina excluída.');
 }
 
@@ -1396,7 +1399,7 @@ async function salvarEdicao(e) {
     if (editNivel === 'Graduação' && editCursos.length === 0) { showToast('Selecione pelo menos um curso!', true); return; }
     arr[idx] = { ...arr[idx], nomeDisciplina:document.getElementById('editNomeDisciplina').value, nomeProfessor:document.getElementById('editNomeProfessor').value, emailProfessor:document.getElementById('editEmailProfessor').value, dataInicio:document.getElementById('editDataInicio').value, periodo:document.getElementById('editPeriodo').value, nivel:editNivel, cursos:editCursos, provas, trabalhos };
     await saveDisciplinas(arr);
-    fecharModalEditar(); renderDisciplinas(); renderTimeline(); renderPendencias();
+    fecharModalEditar(); renderDisciplinas(); renderTimeline();
     showToast('Disciplina atualizada!');
 }
 
@@ -1452,9 +1455,9 @@ function renderTimeline() {
                 </div>
                 <div class="task-done-msg">✓ Todas as ${totalEtapas} etapas concluídas!</div>
                 <div class="task-progress-bar"><div class="task-progress-fill" style="width:${pct}%"></div></div>
-                <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+                <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerUltimoFeito('${disc.id}')">↩ Desfazer última etapa</button>
                     <button class="btn btn-secondary btn-sm" onclick="verEtapas('${disc.id}')">Ver Etapas</button>
-                    <button class="btn btn-sm" style="background:#ffebee; color:#c62828; border:1px solid #ef9a9a;" onclick="desfazerUltimoFeito('${disc.id}')">↩ Desfazer última etapa</button>
                 </div>
             </div>`;
         }
@@ -1479,13 +1482,13 @@ function renderTimeline() {
                 <div class="task-title">${escapeHtml(proxima.titulo)}</div>
                 <div class="task-desc">${escapeHtml(proxima.descricao)}</div>
             </div>
-            <div class="task-actions" style="justify-content:space-between;">
+            <div class="task-actions" style="justify-content:space-between; align-items:flex-end;">
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                     ${botaoEmail}
                     <button class="btn btn-success btn-sm" onclick="marcarFeito('${proxima.key}')">✓ Marcar como Feito</button>
-                    ${concluidos.length > 0 ? `<button class="btn btn-sm" style="background:#ffebee; color:#c62828; border:1px solid #ef9a9a;" onclick="desfazerUltimoFeito('${disc.id}')">↩ Desfazer</button>` : ''}
+                    ${concluidos.length > 0 ? `<button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerUltimoFeito('${disc.id}')">↩ Desfazer</button>` : ''}
                 </div>
-                <button class="btn btn-secondary btn-sm" onclick="verEtapas('${disc.id}')">Ver Etapas</button>
+                <button class="btn btn-secondary btn-sm" style="flex-shrink:0;" onclick="verEtapas('${disc.id}')">Ver Etapas</button>
             </div>
             <div class="task-progress-bar"><div class="task-progress-fill" style="width:${pct}%"></div></div>
         </div>`;
@@ -1612,6 +1615,7 @@ function switchTab(name) {
     if (name==='disciplinas') renderDisciplinas();
     if (name==='timeline') renderTimeline();
     if (name==='admin' && currentUserProfile?.role==='admin') renderAdminUsuarios();
+    sessionStorage.setItem('activeTab', name);
 }
 
 // ==========================================
