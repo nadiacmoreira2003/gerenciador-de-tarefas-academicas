@@ -164,7 +164,29 @@
         .task-progress-fill { height: 100%; background: #1a237e; border-radius: 3px; transition: width 0.4s ease; }
         .task-card.done-card .task-progress-fill { background: #2e7d32; }
         .task-done-msg { text-align: center; color: #2e7d32; font-weight: 600; padding: 10px 0 14px; font-size: 0.9rem; }
-        .task-filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .task-filters { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+        .situacao-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+        .situacao-chips-label { font-size: 0.75rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.4px; margin-right: 2px; }
+        .chip { display: flex; align-items: center; gap: 7px; padding: 6px 14px 6px 10px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: 1.5px solid; transition: all 0.2s; user-select: none; }
+        .chip-box { width: 16px; height: 16px; border-radius: 4px; border: 2px solid; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.65rem; font-weight: 900; transition: all 0.2s; }
+        .chip-atrasada { background: #fff5f5; color: #c62828; border-color: #ffcdd2; }
+        .chip-atrasada .chip-box { border-color: #ef9a9a; background: white; }
+        .chip-atrasada.chip-on { background: #ffebee; border-color: #ef9a9a; }
+        .chip-atrasada.chip-on .chip-box { background: #c62828; border-color: #c62828; color: white; }
+        .chip-atencao { background: #fffdf0; color: #c77700; border-color: #ffe082; }
+        .chip-atencao .chip-box { border-color: #ffcc02; background: white; }
+        .chip-atencao.chip-on { background: #fff8e1; border-color: #ffcc02; }
+        .chip-atencao.chip-on .chip-box { background: #f9a825; border-color: #f9a825; color: white; }
+        .chip-andamento { background: #f5fbf5; color: #2e7d32; border-color: #c8e6c9; }
+        .chip-andamento .chip-box { border-color: #a5d6a7; background: white; }
+        .chip-andamento.chip-on { background: #e8f5e9; border-color: #a5d6a7; }
+        .chip-andamento.chip-on .chip-box { background: #2e7d32; border-color: #2e7d32; color: white; }
+        .chip-concluida { background: #f7f8fd; color: #3949ab; border-color: #c5cae9; }
+        .chip-concluida .chip-box { border-color: #9fa8da; background: white; }
+        .chip-concluida.chip-on { background: #e8eaf6; border-color: #9fa8da; }
+        .chip-concluida.chip-on .chip-box { background: #3949ab; border-color: #3949ab; color: white; }
+        .task-card.atencao { border-left-color: #f9a825; }
+        .task-card.andamento { border-left-color: #2e7d32; }
         /* Modal Etapas */
         .etapa-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
         .etapa-item:last-child { border-bottom: none; }
@@ -425,12 +447,15 @@
                         <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/>
                     </svg>
                 </div>
-                <select id="filtroTarefaStatus" onchange="renderTimeline()" style="padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:0.85rem;">
-                    <option value="todas">Todas as disciplinas</option>
-                    <option value="andamento">Em andamento</option>
-                    <option value="atrasadas">Atrasadas</option>
-                    <option value="concluidas">Concluídas</option>
-                </select>
+                <div style="position:relative;">
+                    <select id="filtroTarefaDisc2" onchange="renderTimeline()" style="padding:8px 12px 8px 34px; border:1px solid #ddd; border-radius:8px; font-size:0.85rem; min-width:180px;">
+                        <option value="">Todas as disciplinas</option>
+                    </select>
+                    <svg style="position:absolute; left:10px; top:50%; transform:translateY(-50%); pointer-events:none;" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1a237e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="12" cy="17" r="3"/>
+                        <line x1="7" y1="10" x2="12" y2="14"/><line x1="17" y1="10" x2="12" y2="14"/>
+                    </svg>
+                </div>
                 <div style="position:relative;">
                     <select id="ordemTarefas" onchange="renderTimeline()" style="padding:8px 12px 8px 34px; border:1px solid #ddd; border-radius:8px; font-size:0.85rem;">
                         <option value="alfa">A → Z (nome)</option>
@@ -441,6 +466,13 @@
                         <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
                     </svg>
                 </div>
+            </div>
+            <div class="situacao-chips">
+                <span class="situacao-chips-label">Filtrar:</span>
+                <span class="chip chip-atrasada chip-on" data-sit="atrasada" onclick="toggleChip(this)"><span class="chip-box">✓</span> Atrasada</span>
+                <span class="chip chip-atencao chip-on" data-sit="atencao" onclick="toggleChip(this)"><span class="chip-box">✓</span> Atenção</span>
+                <span class="chip chip-andamento chip-on" data-sit="andamento" onclick="toggleChip(this)"><span class="chip-box">✓</span> Em Andamento</span>
+                <span class="chip chip-concluida chip-on" data-sit="concluida" onclick="toggleChip(this)"><span class="chip-box">✓</span> Concluída</span>
             </div>
             <div id="tarefasContainer"></div>
         </div>
@@ -1411,7 +1443,17 @@ function renderTimeline() {
     const container = document.getElementById('tarefasContainer');
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     const filtroTexto = (document.getElementById('filtroTarefaDisc')?.value||'').toLowerCase();
-    const filtroStatus = document.getElementById('filtroTarefaStatus')?.value||'todas';
+    const filtroDisc2 = document.getElementById('filtroTarefaDisc2')?.value||'';
+    const chipsAtivos = new Set(Array.from(document.querySelectorAll('.chip.chip-on')).map(c => c.dataset.sit));
+
+    // Popular dropdown de disciplinas
+    const sel = document.getElementById('filtroTarefaDisc2');
+    if (sel) {
+        const atual = sel.value;
+        const ordenadas = [...discs].sort((a,b) => a.nomeDisciplina.localeCompare(b.nomeDisciplina,'pt-BR'));
+        sel.innerHTML = '<option value="">Todas as disciplinas</option>' +
+            ordenadas.map(d => `<option value="${escapeHtml(d.id)}" ${d.id===atual?'selected':''}>${escapeHtml(d.nomeDisciplina)}</option>`).join('');
+    }
 
     if (discs.length === 0) {
         container.innerHTML = '<div class="empty-state"><p>Nenhuma disciplina cadastrada</p><small>Clique em "+ Nova Disciplina" para começar</small></div>';
@@ -1436,25 +1478,36 @@ function renderTimeline() {
 
     const cards = discsOrdenadas.map(disc => {
         if (filtroTexto && !disc.nomeDisciplina.toLowerCase().includes(filtroTexto) && !disc.nomeProfessor.toLowerCase().includes(filtroTexto)) return '';
+        if (filtroDisc2 && disc.id !== filtroDisc2) return '';
         const eventos = gerarEventos(disc);
         const pendentes = eventos.filter(ev => !status[ev.key]);
         const concluidos = eventos.filter(ev => !!status[ev.key]);
         const totalEtapas = eventos.length;
         const isConcluida = pendentes.length === 0;
 
-        if (filtroStatus === 'andamento' && isConcluida) return '';
-        if (filtroStatus === 'concluidas' && !isConcluida) return '';
+        // Determinar situação
+        let situacao;
+        if (isConcluida) {
+            situacao = 'concluida';
+        } else {
+            const proxData = pendentes[0].dataEmail;
+            const proxISO = formatDateISO(proxData);
+            const hojeISO = formatDateISO(hoje);
+            if (proxData < hoje && proxISO !== hojeISO) situacao = 'atrasada';
+            else if (proxISO === hojeISO) situacao = 'atencao';
+            else situacao = 'andamento';
+        }
+
+        if (!chipsAtivos.has(situacao)) return '';
 
         if (isConcluida) {
-            if (filtroStatus === 'atrasadas') return '';
-            const pct = 100;
             return `<div class="task-card done-card">
                 <div class="task-card-header">
                     <div><h3>${escapeHtml(disc.nomeDisciplina)}</h3><p class="task-professor">${escapeHtml(disc.nomeProfessor)}</p></div>
-                    <span class="badge badge-done">Concluído</span>
+                    <span class="badge badge-done">Concluída</span>
                 </div>
                 <div class="task-done-msg">✓ Todas as ${totalEtapas} etapas concluídas!</div>
-                <div class="task-progress-bar"><div class="task-progress-fill" style="width:${pct}%"></div></div>
+                <div class="task-progress-bar"><div class="task-progress-fill" style="width:100%"></div></div>
                 <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
                     <button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerUltimoFeito('${disc.id}')">↩ Desfazer última etapa</button>
                     <button class="btn btn-secondary btn-sm" onclick="verEtapas('${disc.id}')">Ver Etapas</button>
@@ -1463,18 +1516,20 @@ function renderTimeline() {
         }
 
         const proxima = pendentes[0];
-        const atrasado = proxima.dataEmail < hoje;
-        if (filtroStatus === 'atrasadas' && !atrasado) return '';
         const etapaNum = concluidos.length + 1;
         const pct = totalEtapas > 0 ? Math.round((concluidos.length / totalEtapas) * 100) : 0;
         const botaoEmail = proxima.tipo === 'envio_biblioteca'
             ? `<button class="btn btn-primary btn-sm" onclick='abrirModalBiblioteca(${JSON.stringify(proxima.key)})'>📎 Enviar para Biblioteca</button>`
             : `<button class="btn btn-primary btn-sm" onclick='verEmail(${JSON.stringify(proxima.key)})'>✉ Ver E-mail</button>`;
 
-        return `<div class="task-card ${atrasado ? 'overdue' : ''}">
+        const badgeMap = { atrasada: 'badge-overdue', atencao: 'badge-pending', andamento: 'badge-done' };
+        const labelMap = { atrasada: 'Atrasada', atencao: 'Atenção', andamento: 'Em Andamento' };
+        const cardClassMap = { atrasada: 'overdue', atencao: 'atencao', andamento: 'andamento' };
+
+        return `<div class="task-card ${cardClassMap[situacao]}">
             <div class="task-card-header">
                 <div><h3>${escapeHtml(disc.nomeDisciplina)}</h3><p class="task-professor">${escapeHtml(disc.nomeProfessor)}</p></div>
-                <span class="badge ${atrasado ? 'badge-overdue' : 'badge-pending'}">${atrasado ? 'Atrasado' : 'Em andamento'}</span>
+                <span class="badge ${badgeMap[situacao]}">${labelMap[situacao]}</span>
             </div>
             <div class="task-current">
                 <div class="task-step">Etapa ${etapaNum} de ${totalEtapas} &nbsp;·&nbsp; ${pct}% concluído</div>
@@ -1526,6 +1581,13 @@ function verEtapas(discId) {
     }).join('');
 
     document.getElementById('modalEtapas').classList.add('active');
+}
+
+function toggleChip(el) {
+    el.classList.toggle('chip-on');
+    const box = el.querySelector('.chip-box');
+    if (box) box.textContent = el.classList.contains('chip-on') ? '✓' : '';
+    renderTimeline();
 }
 
 function verEmail(key) {
