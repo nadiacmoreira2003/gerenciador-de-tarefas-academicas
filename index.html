@@ -862,7 +862,7 @@ function iniciarApp() {
     document.getElementById('perfilEmail').textContent = currentUserProfile.email;
     document.getElementById('perfilRole').textContent = currentUserProfile.role === 'admin' ? 'Administrador' : 'Coordenador';
     document.getElementById('emailBiblioteca').value = cachedEmailBib;
-    renderDisciplinas(); renderTimeline(); renderPendencias();
+    switchTab('cadastro');
     if (currentUserProfile.role === 'admin') renderAdminUsuarios();
 }
 
