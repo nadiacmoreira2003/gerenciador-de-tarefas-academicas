@@ -207,6 +207,15 @@
         .profile-field span { font-size: 0.95rem; color: #333; }
         .profile-section { border-top: 2px solid #e8eaf6; padding-top: 16px; margin-top: 16px; }
         .profile-section h3 { font-size: 0.95rem; color: #1a237e; margin-bottom: 12px; }
+        /* Proficiência */
+        .prof-entry { display: flex; gap: 10px; align-items: end; margin-bottom: 8px; background: #f3e5f5; padding: 10px; border-radius: 8px; }
+        .prof-entry .form-group { flex: 1; margin-bottom: 0; }
+        .task-card.proficiencia { border-left-color: #6a1b9a; }
+        .task-card.proficiencia .task-card-header h3 { color: #6a1b9a; }
+        .task-card.proficiencia .task-progress-fill { background: #6a1b9a; }
+        .prof-card { background: white; border-radius: 10px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 10px; border-left: 4px solid #6a1b9a; }
+        .prof-card h3 { color: #6a1b9a; font-size: 1rem; margin-bottom: 8px; }
+        .prof-data-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #f9f0ff; border-radius: 6px; margin-top: 6px; font-size: 0.85rem; }
         @media (max-width: 600px) {
             .form-grid { grid-template-columns: 1fr; }
             .prova-entry, .trabalho-entry { flex-direction: column; }
@@ -330,8 +339,8 @@
             <p>Painel da Coordenação</p>
         </div>
         <div class="user-info">
-            <span id="headerUserName"></span>
-            <span class="role-badge" id="headerRoleBadge"></span>
+            <span id="headerUserName" style="font-size:0.85rem; opacity:0.9;"></span>
+            <span id="headerRoleBadge" style="display:none;"></span>
             <button class="btn-header" onclick="switchTab('perfil')">Meu Perfil</button>
             <button class="btn-header" onclick="fazerLogout()">Sair</button>
         </div>
@@ -341,6 +350,7 @@
 <div class="container">
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('cadastro')">+ Nova Disciplina</button>
+        <button class="tab-btn" onclick="switchTab('proficiencia')">Proficiência</button>
         <button class="tab-btn" onclick="switchTab('disciplinas')">Disciplinas</button>
         <button class="tab-btn" onclick="switchTab('timeline')">Tarefas</button>
         <button class="tab-btn" id="tabBtnAdmin" onclick="switchTab('admin')" style="display:none;">Usuários</button>
@@ -422,6 +432,32 @@
                     <button type="button" class="btn btn-secondary" onclick="limparFormulario()">Limpar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- TAB: Proficiência -->
+    <div id="tab-proficiencia" class="tab-content">
+        <div class="card">
+            <h2>Cadastrar Prova de Proficiência</h2>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Identificação</label>
+                    <input type="text" id="profNome" placeholder="Ex: Inglês 2026, Espanhol — 1º Semestre">
+                </div>
+            </div>
+            <div class="provas-section">
+                <h2 style="margin-top:16px;">Datas das Provas</h2>
+                <div id="profDatasContainer"></div>
+                <button type="button" class="btn-add-prova" onclick="adicionarDataProf()">+ Adicionar Data</button>
+            </div>
+            <div class="btn-group" style="margin-top:16px;">
+                <button type="button" class="btn btn-primary" style="background:#6a1b9a;" onclick="salvarProficiencia()">Salvar Proficiência</button>
+                <button type="button" class="btn btn-secondary" onclick="limparFormProf()">Limpar</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Provas de Proficiência Cadastradas</h2>
+            <div id="listaProficiencias"></div>
         </div>
     </div>
 
@@ -678,6 +714,7 @@ const db = firebase.firestore();
 let currentUser = null;
 let currentUserProfile = null;
 let cachedDisciplinas = [];
+let cachedProficiencias = [];
 let cachedStatus = {};
 let cachedEmailBib = '';
 let ultimoUsuarioCriado = null;
@@ -697,11 +734,18 @@ function hideLoading() {
 // ==========================================
 // AUTH STATE
 // ==========================================
+function firestoreGet(ref) {
+    return Promise.race([
+        ref.get(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 12000))
+    ]);
+}
+
 auth.onAuthStateChanged(async (user) => {
     if (user) {
         currentUser = user;
         try {
-            const userDoc = await db.collection('users').doc(user.uid).get();
+            const userDoc = await firestoreGet(db.collection('users').doc(user.uid));
             if (!userDoc.exists) {
                 await auth.signOut();
                 hideLoading();
@@ -727,15 +771,18 @@ auth.onAuthStateChanged(async (user) => {
             hideLoading();
             iniciarApp();
         } catch (err) {
-            console.error(err);
+            console.error('Auth error:', err);
             hideLoading();
             mostrarTelaLogin();
+            if (err.message === 'timeout') {
+                showLoginError('loginError', 'Servidor demorou para responder. Verifique a conexão e tente novamente.');
+            }
         }
     } else {
         currentUser = null;
         currentUserProfile = null;
         try {
-            const configDoc = await db.collection('_config').doc('setup').get();
+            const configDoc = await firestoreGet(db.collection('_config').doc('setup'));
             hideLoading();
             if (!configDoc.exists) {
                 mostrarTelaSetup();
@@ -835,7 +882,7 @@ async function criarPrimeiroAdmin() {
             nome, email, role: 'admin', mustChangePassword: false,
             criadoEm: firebase.firestore.FieldValue.serverTimestamp()
         });
-        await db.collection('userData').doc(uid).set({ disciplinas: [], emailStatus: {}, emailBiblioteca: '' });
+        await db.collection('userData').doc(uid).set({ disciplinas: [], proficiencias: [], emailStatus: {}, emailBiblioteca: '' });
         await db.collection('_config').doc('setup').set({ initialized: true, criadoEm: firebase.firestore.FieldValue.serverTimestamp() });
         // onAuthStateChanged will handle the rest
     } catch (err) {
@@ -906,15 +953,16 @@ async function trocarSenhaPrimeiroAcesso() {
 // ==========================================
 async function loadUserData() {
     try {
-        const doc = await db.collection('userData').doc(currentUser.uid).get();
+        const doc = await firestoreGet(db.collection('userData').doc(currentUser.uid));
         if (doc.exists) {
             const data = doc.data();
             cachedDisciplinas = data.disciplinas || [];
+            cachedProficiencias = data.proficiencias || [];
             cachedStatus = data.emailStatus || {};
             cachedEmailBib = data.emailBiblioteca || '';
         } else {
-            await db.collection('userData').doc(currentUser.uid).set({ disciplinas: [], emailStatus: {}, emailBiblioteca: '' });
-            cachedDisciplinas = []; cachedStatus = {}; cachedEmailBib = '';
+            await db.collection('userData').doc(currentUser.uid).set({ disciplinas: [], proficiencias: [], emailStatus: {}, emailBiblioteca: '' });
+            cachedDisciplinas = []; cachedProficiencias = []; cachedStatus = {}; cachedEmailBib = '';
         }
     } catch (err) { console.error('Erro ao carregar dados:', err); }
 }
@@ -936,7 +984,7 @@ function iniciarApp() {
     document.getElementById('perfilNome').textContent = currentUserProfile.nome;
     document.getElementById('perfilEmail').textContent = currentUserProfile.email;
     document.getElementById('perfilRole').textContent = currentUserProfile.role === 'admin' ? 'Administrador' : 'Coordenador';
-    const abas = ['cadastro', 'disciplinas', 'timeline', 'perfil'];
+    const abas = ['cadastro', 'proficiencia', 'disciplinas', 'timeline', 'perfil'];
     if (currentUserProfile.role === 'admin') abas.push('admin');
     const abaSalva = sessionStorage.getItem('activeTab');
     switchTab(abas.includes(abaSalva) ? abaSalva : 'cadastro');
@@ -966,7 +1014,7 @@ async function adminCriarUsuario() {
             nome, email, role: 'convidado', mustChangePassword: true,
             criadoEm: firebase.firestore.FieldValue.serverTimestamp(), criadoPor: currentUser.uid
         });
-        await db.collection('userData').doc(uid).set({ disciplinas: [], emailStatus: {}, emailBiblioteca: '' });
+        await db.collection('userData').doc(uid).set({ disciplinas: [], proficiencias: [], emailStatus: {}, emailBiblioteca: '' });
         await secondaryAuth.signOut();
 
         hideLoading();
@@ -1104,12 +1152,18 @@ async function alterarSenhaPerfil() {
 // STORAGE (Firestore + cache)
 // ==========================================
 function getDisciplinas() { return cachedDisciplinas; }
+function getProficiencias() { return cachedProficiencias; }
 function getStatus() { return cachedStatus; }
 function getEmailBiblioteca() { return cachedEmailBib; }
 
 async function saveDisciplinas(arr) {
     cachedDisciplinas = arr;
     try { await db.collection('userData').doc(currentUser.uid).update({ disciplinas: arr }); }
+    catch (err) { showToast('Erro ao salvar. Verifique a conexão.', true); }
+}
+async function saveProficiencias(arr) {
+    cachedProficiencias = arr;
+    try { await db.collection('userData').doc(currentUser.uid).update({ proficiencias: arr }); }
     catch (err) { showToast('Erro ao salvar. Verifique a conexão.', true); }
 }
 async function saveStatus(obj) {
@@ -1261,6 +1315,49 @@ function gerarEventos(disc) {
 }
 
 // ==========================================
+// GERAR EVENTOS PROFICIÊNCIA
+// ==========================================
+function gerarEventosProficienciaItem(prof, dataItem, di) {
+    const dataProva = parseDate(dataItem.data);
+    const tipoLabel = dataItem.tipoPagamento === 'paga' ? 'paga' : 'gratuita';
+
+    // Prazo inscrição: 30 dias antes, ajustado para dia útil anterior
+    const prazoBase = new Date(dataProva);
+    prazoBase.setDate(prazoBase.getDate() - 30);
+    while (!isUtil(prazoBase)) prazoBase.setDate(prazoBase.getDate() - 1);
+    const prazoInscricao = new Date(prazoBase);
+
+    // Comunicado: 60 dias antes
+    const dataComunicado = new Date(dataProva);
+    dataComunicado.setDate(dataComunicado.getDate() - 60);
+
+    // Lembrete: 40 dias antes
+    const dataLembrete = new Date(dataProva);
+    dataLembrete.setDate(dataLembrete.getDate() - 40);
+
+    return [
+        {
+            key: `${prof.id}_prof_com_${di}`,
+            dataEmail: dataComunicado,
+            prazo: prazoInscricao,
+            tipo: 'prof_comunicado',
+            titulo: `Comunicar Alunos – Prova de Proficiência`,
+            descricao: `E-mail comunicando a prova (${tipoLabel}) em ${formatDate(dataProva)}. Prazo de inscrição: ${formatDate(prazoInscricao)}`,
+            prof, dataItem, dataIndex: di
+        },
+        {
+            key: `${prof.id}_prof_lem_${di}`,
+            dataEmail: dataLembrete,
+            prazo: prazoInscricao,
+            tipo: 'prof_lembrete',
+            titulo: `Lembrar Alunos – Prova de Proficiência`,
+            descricao: `E-mail de lembrete sobre a prova (${tipoLabel}) em ${formatDate(dataProva)}. Prazo de inscrição: ${formatDate(prazoInscricao)}`,
+            prof, dataItem, dataIndex: di
+        }
+    ];
+}
+
+// ==========================================
 // MODELOS DE E-MAIL
 // ==========================================
 function gerarEmail(evento) {
@@ -1309,6 +1406,21 @@ function gerarEmail(evento) {
     return { assunto, corpo, para: d.emailProfessor };
 }
 
+function gerarEmailProficiencia(evento) {
+    const dataProva = formatDate(parseDate(evento.dataItem.data));
+    const tipoLabel = evento.dataItem.tipoPagamento === 'paga' ? 'paga' : 'gratuita';
+    const prazoInscricao = formatDate(evento.prazo);
+    let assunto, corpo;
+    if (evento.tipo === 'prof_comunicado') {
+        assunto = `Prova de Proficiência – ${dataProva}`;
+        corpo = `Prezados alunos,\n\nInformamos que a próxima *Prova de Proficiência* está programada para o dia *${dataProva}*.\n\nA prova é *${tipoLabel}*.\n\n*Prazo para inscrição: ${prazoInscricao}*\n\nPara mais informações sobre como se inscrever, entre em contato com a coordenação.\n\nAtenciosamente,\nCoordenação`;
+    } else {
+        assunto = `Lembrete – Prova de Proficiência – ${dataProva}`;
+        corpo = `Prezados alunos,\n\nLembramos que a *Prova de Proficiência* está programada para o dia *${dataProva}*.\n\nA prova é *${tipoLabel}*.\n\nAtenção: o prazo para inscrição é *${prazoInscricao}*. Não deixe para a última hora!\n\nPara mais informações sobre como se inscrever, entre em contato com a coordenação.\n\nAtenciosamente,\nCoordenação`;
+    }
+    return { assunto, corpo, para: '' };
+}
+
 // ==========================================
 // UI: PROVAS / TRABALHOS DINÂMICOS
 // ==========================================
@@ -1337,6 +1449,63 @@ function adicionarTrabalhoEdit() {
     const div = document.createElement('div'); div.className = 'trabalho-entry';
     div.innerHTML = `<div class="form-group"><label>Nome do Trabalho</label><input type="text" class="trabalho-nome" value="Trabalho ${count}" required></div><div class="form-group"><label>Data de Entrega</label><input type="date" class="trabalho-data" required></div><div class="form-group" style="max-width:140px;"><label>Prazo Correção (dias)</label><input type="number" class="trabalho-prazo-correcao" min="1" value="20" required></div><button type="button" class="btn-remove-prova" onclick="this.closest('.trabalho-entry').remove()" title="Remover">&times;</button>`;
     document.getElementById('editTrabalhosContainer').appendChild(div);
+}
+
+// ==========================================
+// PROFICIÊNCIA - FORMULÁRIO
+// ==========================================
+function adicionarDataProf() {
+    const div = document.createElement('div'); div.className = 'prof-entry';
+    div.innerHTML = `<div class="form-group"><label>Data da Prova</label><input type="date" class="prof-data" required></div>
+        <div class="form-group" style="max-width:160px;"><label>Tipo</label><select class="prof-tipo"><option value="gratuita">Gratuita</option><option value="paga">Paga</option></select></div>
+        <button type="button" class="btn-remove-prova" onclick="this.closest('.prof-entry').remove()" title="Remover">&times;</button>`;
+    document.getElementById('profDatasContainer').appendChild(div);
+}
+
+async function salvarProficiencia() {
+    const nome = document.getElementById('profNome').value.trim() || 'Prova de Proficiência';
+    const datas = [];
+    document.querySelectorAll('#profDatasContainer .prof-entry').forEach((el, idx) => {
+        const data = el.querySelector('.prof-data').value;
+        const tipo = el.querySelector('.prof-tipo').value;
+        if (data) datas.push({ id: `${Date.now()}_${idx}`, data, tipoPagamento: tipo });
+    });
+    if (datas.length === 0) { showToast('Adicione pelo menos uma data.', true); return; }
+    const arr = getProficiencias();
+    arr.push({ id: Date.now().toString(), nome, datas });
+    await saveProficiencias(arr);
+    document.getElementById('profNome').value = '';
+    document.getElementById('profDatasContainer').innerHTML = '';
+    showToast('Prova de Proficiência cadastrada!');
+    renderProficiencias(); renderTimeline();
+}
+
+function limparFormProf() {
+    document.getElementById('profNome').value = '';
+    document.getElementById('profDatasContainer').innerHTML = '';
+}
+
+function renderProficiencias() {
+    const profs = getProficiencias();
+    const container = document.getElementById('listaProficiencias');
+    if (!container) return;
+    if (profs.length === 0) { container.innerHTML = '<div class="empty-state"><p>Nenhuma prova de proficiência cadastrada</p></div>'; return; }
+    container.innerHTML = profs.map(prof => {
+        const datasHtml = (prof.datas||[]).map(d =>
+            `<div class="prof-data-item"><span>${formatDate(parseDate(d.data))}</span><span class="badge" style="${d.tipoPagamento==='paga'?'background:#fff3e0;color:#e65100;':'background:#e8f5e9;color:#2e7d32;'}">${d.tipoPagamento==='paga'?'Paga':'Gratuita'}</span></div>`
+        ).join('');
+        return `<div class="prof-card"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><h3>${escapeHtml(prof.nome)}</h3><button class="btn btn-danger btn-sm" onclick="excluirProficiencia('${prof.id}')">Excluir</button></div>${datasHtml}</div>`;
+    }).join('');
+}
+
+async function excluirProficiencia(id) {
+    if (!confirm('Excluir esta prova de proficiência e todas as suas datas?')) return;
+    const arr = getProficiencias().filter(p => p.id !== id);
+    const st = getStatus();
+    Object.keys(st).forEach(k => { if (k.startsWith(id+'_')) delete st[k]; });
+    await saveProficiencias(arr); await saveStatus(st);
+    renderProficiencias(); renderTimeline();
+    showToast('Prova de proficiência excluída.');
 }
 
 // ==========================================
@@ -1436,15 +1605,26 @@ async function salvarEdicao(e) {
 }
 
 // ==========================================
-// RENDER TAREFAS (uma por disciplina)
+// RENDER TAREFAS (disciplinas + proficiência)
 // ==========================================
+function calcSituacao(pendentes, hoje) {
+    if (pendentes.length === 0) return 'concluida';
+    const proxData = pendentes[0].dataEmail;
+    const proxISO = formatDateISO(proxData);
+    const hojeISO = formatDateISO(hoje);
+    if (proxData < hoje && proxISO !== hojeISO) return 'atrasada';
+    if (proxISO === hojeISO) return 'atencao';
+    return 'andamento';
+}
+
 function renderTimeline() {
-    const discs = getDisciplinas(), status = getStatus();
+    const discs = getDisciplinas(), profs = getProficiencias(), status = getStatus();
     const container = document.getElementById('tarefasContainer');
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     const filtroTexto = (document.getElementById('filtroTarefaDisc')?.value||'').toLowerCase();
     const filtroDisc2 = document.getElementById('filtroTarefaDisc2')?.value||'';
     const chipsAtivos = new Set(Array.from(document.querySelectorAll('.chip.chip-on')).map(c => c.dataset.sit));
+    const ordem = document.getElementById('ordemTarefas')?.value || 'alfa';
 
     // Popular dropdown de disciplinas
     const sel = document.getElementById('filtroTarefaDisc2');
@@ -1455,80 +1635,133 @@ function renderTimeline() {
             ordenadas.map(d => `<option value="${escapeHtml(d.id)}" ${d.id===atual?'selected':''}>${escapeHtml(d.nomeDisciplina)}</option>`).join('');
     }
 
-    if (discs.length === 0) {
+    if (discs.length === 0 && profs.length === 0) {
         container.innerHTML = '<div class="empty-state"><p>Nenhuma disciplina cadastrada</p><small>Clique em "+ Nova Disciplina" para começar</small></div>';
         return;
     }
 
-    const ordem = document.getElementById('ordemTarefas')?.value || 'alfa';
-    let discsOrdenadas = [...discs];
-    if (ordem === 'alfa') {
-        discsOrdenadas.sort((a, b) => a.nomeDisciplina.localeCompare(b.nomeDisciplina, 'pt-BR'));
-    } else {
-        // Ordena pela data da próxima tarefa pendente (disciplinas concluídas vão para o final)
-        discsOrdenadas.sort((a, b) => {
-            const evA = gerarEventos(a).find(ev => !status[ev.key]);
-            const evB = gerarEventos(b).find(ev => !status[ev.key]);
-            if (!evA && !evB) return a.nomeDisciplina.localeCompare(b.nomeDisciplina, 'pt-BR');
-            if (!evA) return 1;
-            if (!evB) return -1;
-            return evA.dataEmail - evB.dataEmail;
-        });
-    }
+    // Construir lista unificada de itens
+    const items = [];
 
-    const cards = discsOrdenadas.map(disc => {
-        if (filtroTexto && !disc.nomeDisciplina.toLowerCase().includes(filtroTexto) && !disc.nomeProfessor.toLowerCase().includes(filtroTexto)) return '';
-        if (filtroDisc2 && disc.id !== filtroDisc2) return '';
+    discs.forEach(disc => {
+        if (filtroTexto && !disc.nomeDisciplina.toLowerCase().includes(filtroTexto) && !disc.nomeProfessor.toLowerCase().includes(filtroTexto)) return;
+        if (filtroDisc2 && disc.id !== filtroDisc2) return;
         const eventos = gerarEventos(disc);
         const pendentes = eventos.filter(ev => !status[ev.key]);
         const concluidos = eventos.filter(ev => !!status[ev.key]);
+        const situacao = calcSituacao(pendentes, hoje);
+        if (!chipsAtivos.has(situacao)) return;
+        const proxData = pendentes.length > 0 ? pendentes[0].dataEmail : null;
+        items.push({ type: 'disc', disc, eventos, pendentes, concluidos, situacao, proxData, nome: disc.nomeDisciplina });
+    });
+
+    if (!filtroDisc2) {
+        profs.forEach(prof => {
+            const nomeLower = prof.nome.toLowerCase();
+            if (filtroTexto && !nomeLower.includes(filtroTexto) && !('proficiência').includes(filtroTexto)) return;
+            (prof.datas||[]).forEach((dataItem, di) => {
+                if (!dataItem.data) return;
+                const eventos = gerarEventosProficienciaItem(prof, dataItem, di);
+                const pendentes = eventos.filter(ev => !status[ev.key]);
+                const concluidos = eventos.filter(ev => !!status[ev.key]);
+                const situacao = calcSituacao(pendentes, hoje);
+                if (!chipsAtivos.has(situacao)) return;
+                const proxData = pendentes.length > 0 ? pendentes[0].dataEmail : null;
+                items.push({ type: 'prof', prof, dataItem, di, eventos, pendentes, concluidos, situacao, proxData, nome: prof.nome });
+            });
+        });
+    }
+
+    // Ordenar
+    if (ordem === 'alfa') {
+        items.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    } else {
+        items.sort((a, b) => {
+            if (!a.proxData && !b.proxData) return a.nome.localeCompare(b.nome, 'pt-BR');
+            if (!a.proxData) return 1;
+            if (!b.proxData) return -1;
+            return a.proxData - b.proxData;
+        });
+    }
+
+    const badgeMap = { atrasada: 'badge-overdue', atencao: 'badge-pending', andamento: 'badge-done' };
+    const labelMap = { atrasada: 'Atrasada', atencao: 'Atenção', andamento: 'Em Andamento' };
+    const cardClassMap = { atrasada: 'overdue', atencao: 'atencao', andamento: 'andamento' };
+
+    const cards = items.map(item => {
+        const { situacao, pendentes, concluidos, eventos } = item;
+        const isConcluida = situacao === 'concluida';
         const totalEtapas = eventos.length;
-        const isConcluida = pendentes.length === 0;
+        const pct = totalEtapas > 0 ? Math.round((concluidos.length / totalEtapas) * 100) : 0;
 
-        // Determinar situação
-        let situacao;
-        if (isConcluida) {
-            situacao = 'concluida';
-        } else {
-            const proxData = pendentes[0].dataEmail;
-            const proxISO = formatDateISO(proxData);
-            const hojeISO = formatDateISO(hoje);
-            if (proxData < hoje && proxISO !== hojeISO) situacao = 'atrasada';
-            else if (proxISO === hojeISO) situacao = 'atencao';
-            else situacao = 'andamento';
-        }
-
-        if (!chipsAtivos.has(situacao)) return '';
-
-        if (isConcluida) {
-            return `<div class="task-card done-card">
+        if (item.type === 'disc') {
+            const disc = item.disc;
+            if (isConcluida) {
+                return `<div class="task-card done-card">
+                    <div class="task-card-header">
+                        <div><h3>${escapeHtml(disc.nomeDisciplina)}</h3><p class="task-professor">${escapeHtml(disc.nomeProfessor)}</p></div>
+                        <span class="badge badge-done">Concluída</span>
+                    </div>
+                    <div class="task-done-msg">✓ Todas as ${totalEtapas} etapas concluídas!</div>
+                    <div class="task-progress-bar"><div class="task-progress-fill" style="width:100%"></div></div>
+                    <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerUltimoFeito('${disc.id}')">↩ Desfazer última etapa</button>
+                        <button class="btn btn-secondary btn-sm" onclick="verEtapas('${disc.id}')">Ver Etapas</button>
+                    </div>
+                </div>`;
+            }
+            const proxima = pendentes[0];
+            const etapaNum = concluidos.length + 1;
+            const botaoEmail = proxima.tipo === 'envio_biblioteca'
+                ? `<button class="btn btn-primary btn-sm" onclick='abrirModalBiblioteca(${JSON.stringify(proxima.key)})'>📎 Enviar para Biblioteca</button>`
+                : `<button class="btn btn-primary btn-sm" onclick='verEmail(${JSON.stringify(proxima.key)})'>✉ Ver E-mail</button>`;
+            return `<div class="task-card ${cardClassMap[situacao]}">
                 <div class="task-card-header">
                     <div><h3>${escapeHtml(disc.nomeDisciplina)}</h3><p class="task-professor">${escapeHtml(disc.nomeProfessor)}</p></div>
-                    <span class="badge badge-done">Concluída</span>
+                    <span class="badge ${badgeMap[situacao]}">${labelMap[situacao]}</span>
                 </div>
-                <div class="task-done-msg">✓ Todas as ${totalEtapas} etapas concluídas!</div>
-                <div class="task-progress-bar"><div class="task-progress-fill" style="width:100%"></div></div>
-                <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-                    <button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerUltimoFeito('${disc.id}')">↩ Desfazer última etapa</button>
-                    <button class="btn btn-secondary btn-sm" onclick="verEtapas('${disc.id}')">Ver Etapas</button>
+                <div class="task-current">
+                    <div class="task-step">Etapa ${etapaNum} de ${totalEtapas} &nbsp;·&nbsp; ${pct}% concluído</div>
+                    <div class="task-date">${formatDate(proxima.dataEmail)}</div>
+                    <div class="task-title">${escapeHtml(proxima.titulo)}</div>
+                    <div class="task-desc">${escapeHtml(proxima.descricao)}</div>
                 </div>
+                <div class="task-actions" style="justify-content:space-between; align-items:flex-end;">
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        ${botaoEmail}
+                        <button class="btn btn-success btn-sm" onclick="marcarFeito('${proxima.key}')">✓ Marcar como Feito</button>
+                        ${concluidos.length > 0 ? `<button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerUltimoFeito('${disc.id}')">↩ Desfazer</button>` : ''}
+                    </div>
+                    <button class="btn btn-secondary btn-sm" style="flex-shrink:0;" onclick="verEtapas('${disc.id}')">Ver Etapas</button>
+                </div>
+                <div class="task-progress-bar"><div class="task-progress-fill" style="width:${pct}%"></div></div>
             </div>`;
         }
 
+        // Proficiência
+        const { prof, dataItem, di } = item;
+        const dataProvaFmt = formatDate(parseDate(dataItem.data));
+        const tipoLabel = dataItem.tipoPagamento === 'paga' ? 'Paga' : 'Gratuita';
+        const tipoStyle = dataItem.tipoPagamento === 'paga' ? 'color:#e65100; font-weight:700;' : 'color:#2e7d32; font-weight:700;';
+        if (isConcluida) {
+            return `<div class="task-card done-card proficiencia">
+                <div class="task-card-header">
+                    <div><h3>Prova de Proficiência</h3><p class="task-professor">${escapeHtml(prof.nome)} &nbsp;·&nbsp; ${dataProvaFmt} &nbsp;·&nbsp; <span style="${tipoStyle}">${tipoLabel}</span></p></div>
+                    <span class="badge badge-done">Concluída</span>
+                </div>
+                <div class="task-done-msg">✓ Todas as ${totalEtapas} etapas concluídas!</div>
+                <div class="task-progress-bar"><div class="task-progress-fill" style="width:100%; background:#6a1b9a;"></div></div>
+                <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerProficiencia('${prof.id}',${di})">↩ Desfazer última etapa</button>
+                    <button class="btn btn-secondary btn-sm" onclick="verEtapasProficiencia('${prof.id}',${di})">Ver Etapas</button>
+                </div>
+            </div>`;
+        }
         const proxima = pendentes[0];
         const etapaNum = concluidos.length + 1;
-        const pct = totalEtapas > 0 ? Math.round((concluidos.length / totalEtapas) * 100) : 0;
-        const botaoEmail = proxima.tipo === 'envio_biblioteca'
-            ? `<button class="btn btn-primary btn-sm" onclick='abrirModalBiblioteca(${JSON.stringify(proxima.key)})'>📎 Enviar para Biblioteca</button>`
-            : `<button class="btn btn-primary btn-sm" onclick='verEmail(${JSON.stringify(proxima.key)})'>✉ Ver E-mail</button>`;
-
-        const badgeMap = { atrasada: 'badge-overdue', atencao: 'badge-pending', andamento: 'badge-done' };
-        const labelMap = { atrasada: 'Atrasada', atencao: 'Atenção', andamento: 'Em Andamento' };
-        const cardClassMap = { atrasada: 'overdue', atencao: 'atencao', andamento: 'andamento' };
-
-        return `<div class="task-card ${cardClassMap[situacao]}">
+        return `<div class="task-card ${cardClassMap[situacao]} proficiencia">
             <div class="task-card-header">
-                <div><h3>${escapeHtml(disc.nomeDisciplina)}</h3><p class="task-professor">${escapeHtml(disc.nomeProfessor)}</p></div>
+                <div><h3>Prova de Proficiência</h3><p class="task-professor">${escapeHtml(prof.nome)} &nbsp;·&nbsp; ${dataProvaFmt} &nbsp;·&nbsp; <span style="${tipoStyle}">${tipoLabel}</span></p></div>
                 <span class="badge ${badgeMap[situacao]}">${labelMap[situacao]}</span>
             </div>
             <div class="task-current">
@@ -1539,18 +1772,17 @@ function renderTimeline() {
             </div>
             <div class="task-actions" style="justify-content:space-between; align-items:flex-end;">
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                    ${botaoEmail}
+                    <button class="btn btn-primary btn-sm" style="background:#6a1b9a;" onclick='verEmail(${JSON.stringify(proxima.key)})'>✉ Ver E-mail</button>
                     <button class="btn btn-success btn-sm" onclick="marcarFeito('${proxima.key}')">✓ Marcar como Feito</button>
-                    ${concluidos.length > 0 ? `<button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerUltimoFeito('${disc.id}')">↩ Desfazer</button>` : ''}
+                    ${concluidos.length > 0 ? `<button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerProficiencia('${prof.id}',${di})">↩ Desfazer</button>` : ''}
                 </div>
-                <button class="btn btn-secondary btn-sm" style="flex-shrink:0;" onclick="verEtapas('${disc.id}')">Ver Etapas</button>
+                <button class="btn btn-secondary btn-sm" style="flex-shrink:0;" onclick="verEtapasProficiencia('${prof.id}',${di})">Ver Etapas</button>
             </div>
-            <div class="task-progress-bar"><div class="task-progress-fill" style="width:${pct}%"></div></div>
+            <div class="task-progress-bar"><div class="task-progress-fill" style="width:${pct}%; background:#6a1b9a;"></div></div>
         </div>`;
     });
 
-    const html = cards.filter(c => c !== '').join('');
-    container.innerHTML = html || '<div class="empty-state"><p>Nenhuma disciplina encontrada</p></div>';
+    container.innerHTML = cards.join('') || '<div class="empty-state"><p>Nenhuma tarefa encontrada</p></div>';
 }
 
 function verEtapas(discId) {
@@ -1583,6 +1815,39 @@ function verEtapas(discId) {
     document.getElementById('modalEtapas').classList.add('active');
 }
 
+function verEtapasProficiencia(profId, di) {
+    const prof = getProficiencias().find(p => p.id === profId);
+    if (!prof || !prof.datas[di]) return;
+    const dataItem = prof.datas[di];
+    const status = getStatus();
+    const eventos = gerarEventosProficienciaItem(prof, dataItem, di);
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    document.getElementById('modalEtapasTitulo').textContent = 'Prova de Proficiência';
+    document.getElementById('modalEtapasProf').textContent = `${prof.nome} · ${formatDate(parseDate(dataItem.data))} · ${dataItem.tipoPagamento==='paga'?'Paga':'Gratuita'}`;
+    const primeiroPendente = eventos.find(ev => !status[ev.key]);
+    document.getElementById('modalEtapasLista').innerHTML = eventos.map((ev, i) => {
+        const feita = !!status[ev.key];
+        const isAtual = !feita && ev === primeiroPendente;
+        const atrasada = !feita && ev.dataEmail < hoje;
+        let cls = feita ? 'feita' : isAtual ? (atrasada ? 'atrasada' : 'atual') : (atrasada ? 'atrasada' : 'futura');
+        let icone = feita ? '✓' : isAtual ? '→' : (i + 1);
+        return `<div class="etapa-item"><div class="etapa-icone ${cls}">${icone}</div><div class="etapa-info"><div class="etapa-titulo ${cls}">${escapeHtml(ev.titulo)}</div><div class="etapa-data">${formatDate(ev.dataEmail)}${feita?' · Concluído':atrasada?' · Atrasado':''}</div></div></div>`;
+    }).join('');
+    document.getElementById('modalEtapas').classList.add('active');
+}
+
+async function desfazerProficiencia(profId, di) {
+    const prof = getProficiencias().find(p => p.id === profId);
+    if (!prof || !prof.datas[di]) return;
+    const st = getStatus();
+    const eventos = gerarEventosProficienciaItem(prof, prof.datas[di], di);
+    const feitos = eventos.filter(ev => st[ev.key]);
+    if (feitos.length === 0) return;
+    delete st[feitos[feitos.length-1].key];
+    await saveStatus(st); renderTimeline();
+    showToast('Etapa desfeita.');
+}
+
 function toggleChip(el) {
     el.classList.toggle('chip-on');
     const box = el.querySelector('.chip-box');
@@ -1591,12 +1856,21 @@ function toggleChip(el) {
 }
 
 function verEmail(key) {
-    const discs = getDisciplinas(); let eventoAlvo = null;
-    discs.forEach(d => { gerarEventos(d).forEach(ev => { if (ev.key===key) eventoAlvo=ev; }); });
+    let eventoAlvo = null;
+    getDisciplinas().forEach(d => { gerarEventos(d).forEach(ev => { if (ev.key===key) eventoAlvo=ev; }); });
+    if (!eventoAlvo) {
+        getProficiencias().forEach(prof => {
+            (prof.datas||[]).forEach((dataItem, di) => {
+                gerarEventosProficienciaItem(prof, dataItem, di).forEach(ev => { if (ev.key===key) eventoAlvo=ev; });
+            });
+        });
+    }
     if (!eventoAlvo) return;
-    const email = gerarEmail(eventoAlvo); currentEmail = email;
+    const email = (eventoAlvo.tipo==='prof_comunicado'||eventoAlvo.tipo==='prof_lembrete')
+        ? gerarEmailProficiencia(eventoAlvo) : gerarEmail(eventoAlvo);
+    currentEmail = email;
     document.getElementById('modalTitulo').textContent = eventoAlvo.titulo;
-    document.getElementById('modalPara').textContent = email.para;
+    document.getElementById('modalPara').textContent = email.para || 'Alunos (preencher destinatário)';
     document.getElementById('modalAssunto').textContent = email.assunto;
     document.getElementById('modalCorpo').value = email.corpo;
     document.getElementById('modalEmail').classList.add('active');
@@ -1676,6 +1950,7 @@ function switchTab(name) {
     if (btn) btn.classList.add('active');
     if (name==='disciplinas') renderDisciplinas();
     if (name==='timeline') renderTimeline();
+    if (name==='proficiencia') renderProficiencias();
     if (name==='admin' && currentUserProfile?.role==='admin') renderAdminUsuarios();
     sessionStorage.setItem('activeTab', name);
 }
