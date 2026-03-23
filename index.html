@@ -1415,7 +1415,7 @@ function gerarEmailProficiencia(evento) {
     let assunto, corpo;
     if (evento.tipo === 'prof_comunicado') {
         assunto = `Prova de Proficiência – ${dataProva}`;
-        corpo = `Prezados alunos,\n\nInformamos que a próxima *Prova de Proficiência* está programada para:\n\n*Data: ${dataProva}*\n${horarioStr}\nA prova é *${tipoLabel}*.\n\n*Prazo para inscrição: ${prazoInscricao}*\n\nPara mais informações sobre como se inscrever, entre em contato com a coordenação.\n\nAtenciosamente,\nCoordenação`;
+        corpo = `Prezados alunos,\n\nInformamos que a próxima *Prova de Proficiência* está programada para:\n\n*Data: ${dataProva}*\n${horarioStr}\n*Modalidade: Online*\nA prova é *${tipoLabel}*.\n\n*Prazo para inscrição: ${prazoInscricao}*\n\nPara mais informações sobre como se inscrever, entre em contato com a coordenação.\n\nAtenciosamente,\nCoordenação`;
     } else {
         assunto = `Lembrete – Prova de Proficiência – ${dataProva}`;
         corpo = `Prezados alunos,\n\nLembramos que a *Prova de Proficiência* está programada para:\n\n*Data: ${dataProva}*\n${horarioStr}\nA prova é *${tipoLabel}*.\n\nAtenção: o prazo para inscrição é *${prazoInscricao}*. Não deixe para a última hora!\n\nPara mais informações sobre como se inscrever, entre em contato com a coordenação.\n\nAtenciosamente,\nCoordenação`;
