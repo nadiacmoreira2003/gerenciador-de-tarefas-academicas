@@ -185,6 +185,10 @@
         .chip-concluida .chip-box { border-color: #9fa8da; background: white; }
         .chip-concluida.chip-on { background: #e8eaf6; border-color: #9fa8da; }
         .chip-concluida.chip-on .chip-box { background: #3949ab; border-color: #3949ab; color: white; }
+        .chip-tipo { background: #f5f5f5; color: #546e7a; border-color: #cfd8dc; }
+        .chip-tipo .chip-box { border-color: #b0bec5; background: white; }
+        .chip-tipo.chip-on { background: #eceff1; border-color: #b0bec5; }
+        .chip-tipo.chip-on .chip-box { background: #546e7a; border-color: #546e7a; color: white; }
         .task-card.atencao { border-left-color: #f9a825; }
         .task-card.andamento { border-left-color: #2e7d32; }
         /* Modal Etapas */
@@ -208,14 +212,11 @@
         .profile-section { border-top: 2px solid #e8eaf6; padding-top: 16px; margin-top: 16px; }
         .profile-section h3 { font-size: 0.95rem; color: #1a237e; margin-bottom: 12px; }
         /* Proficiência */
-        .prof-entry { display: flex; gap: 10px; align-items: end; margin-bottom: 8px; background: #f3e5f5; padding: 10px; border-radius: 8px; }
+        .prof-entry { display: flex; gap: 10px; align-items: end; margin-bottom: 8px; background: #e8eaf6; padding: 10px; border-radius: 8px; }
         .prof-entry .form-group { flex: 1; margin-bottom: 0; }
-        .task-card.proficiencia { border-left-color: #6a1b9a; }
-        .task-card.proficiencia .task-card-header h3 { color: #6a1b9a; }
-        .task-card.proficiencia .task-progress-fill { background: #6a1b9a; }
-        .prof-card { background: white; border-radius: 10px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 10px; border-left: 4px solid #6a1b9a; }
-        .prof-card h3 { color: #6a1b9a; font-size: 1rem; margin-bottom: 8px; }
-        .prof-data-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #f9f0ff; border-radius: 6px; margin-top: 6px; font-size: 0.85rem; }
+        .prof-card { background: white; border-radius: 10px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 10px; border-left: 4px solid #1a237e; }
+        .prof-card h3 { color: #1a237e; font-size: 1rem; margin-bottom: 8px; }
+        .prof-data-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #f5f5f5; border-radius: 6px; margin-top: 6px; font-size: 0.85rem; }
         @media (max-width: 600px) {
             .form-grid { grid-template-columns: 1fr; }
             .prova-entry, .trabalho-entry { flex-direction: column; }
@@ -451,7 +452,7 @@
                 <button type="button" class="btn-add-prova" onclick="adicionarDataProf()">+ Adicionar Data</button>
             </div>
             <div class="btn-group" style="margin-top:16px;">
-                <button type="button" class="btn btn-primary" style="background:#6a1b9a;" onclick="salvarProficiencia()">Salvar Proficiência</button>
+                <button type="button" class="btn btn-primary" onclick="salvarProficiencia()">Salvar Proficiência</button>
                 <button type="button" class="btn btn-secondary" onclick="limparFormProf()">Limpar</button>
             </div>
         </div>
@@ -475,7 +476,7 @@
     <!-- TAB: Tarefas -->
     <div id="tab-timeline" class="tab-content">
         <div class="card">
-            <h2>Tarefas por Disciplina</h2>
+            <h2>Tarefas</h2>
             <div class="task-filters">
                 <div style="position:relative; flex:1; min-width:180px;">
                     <input type="text" id="filtroTarefaDisc" placeholder="Buscar disciplina ou professor..." oninput="renderTimeline()" style="padding:8px 12px 8px 36px; border:1px solid #ddd; border-radius:8px; font-size:0.85rem; width:100%;">
@@ -494,8 +495,8 @@
                 </div>
                 <div style="position:relative;">
                     <select id="ordemTarefas" onchange="renderTimeline()" style="padding:8px 12px 8px 34px; border:1px solid #ddd; border-radius:8px; font-size:0.85rem;">
-                        <option value="alfa">A → Z (nome)</option>
                         <option value="data">Por data da próxima tarefa</option>
+                        <option value="alfa">A → Z (nome)</option>
                     </select>
                     <svg style="position:absolute; left:10px; top:50%; transform:translateY(-50%); pointer-events:none;" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1a237e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
@@ -504,11 +505,16 @@
                 </div>
             </div>
             <div class="situacao-chips">
-                <span class="situacao-chips-label">Filtrar:</span>
+                <span class="situacao-chips-label">Status:</span>
                 <span class="chip chip-atrasada chip-on" data-sit="atrasada" onclick="toggleChip(this)"><span class="chip-box">✓</span> Atrasada</span>
                 <span class="chip chip-atencao chip-on" data-sit="atencao" onclick="toggleChip(this)"><span class="chip-box">✓</span> Atenção</span>
                 <span class="chip chip-andamento chip-on" data-sit="andamento" onclick="toggleChip(this)"><span class="chip-box">✓</span> Em Andamento</span>
                 <span class="chip chip-concluida chip-on" data-sit="concluida" onclick="toggleChip(this)"><span class="chip-box">✓</span> Concluída</span>
+            </div>
+            <div class="situacao-chips">
+                <span class="situacao-chips-label">Tipo:</span>
+                <span class="chip chip-tipo chip-on" data-tipo="disciplina" onclick="toggleChipTipo(this)"><span class="chip-box">✓</span> Disciplina</span>
+                <span class="chip chip-tipo chip-on" data-tipo="proficiencia" onclick="toggleChipTipo(this)"><span class="chip-box">✓</span> Proficiência</span>
             </div>
             <div id="tarefasContainer"></div>
         </div>
@@ -1250,6 +1256,13 @@ function gerarEventos(disc) {
         titulo:`Solicitar Programa da Disciplina`,
         descricao:`Enviar modelo do programa para ${disc.nomeProfessor} preencher até ${formatDate(prazoPrograma)}`, disc });
 
+    const dVerifProg = new Date(prazoPrograma); dVerifProg.setDate(dVerifProg.getDate()+1);
+    const dataVerifPrograma = proximoDiaUtil(dVerifProg);
+    eventos.push({ key:`${id}_programa_verif`, dataEmail:dataVerifPrograma, prazo:dataVerifPrograma, tipo:'verificacao_programa',
+        titulo:`Verificar Envio: Programa da Disciplina`,
+        descricao:`Confirmar se ${disc.nomeProfessor} enviou o programa da disciplina (prazo era ${formatDate(prazoPrograma)}). Se não recebeu, enviar cobrança urgente.`,
+        disc });
+
     disc.provas.forEach((prova, i) => {
         const dataProva = parseDate(prova.data);
         const dataEmailElab = new Date(dataProva); dataEmailElab.setDate(dataEmailElab.getDate()-15);
@@ -1368,6 +1381,10 @@ function gerarEmail(evento) {
             assunto = `Programa da Disciplina – ${disc}`;
             corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nConforme cronograma acadêmico, solicito o preenchimento do programa da disciplina *${disc}*.\n\nSegue em anexo o modelo do programa para preenchimento.\n\nPrazo para envio: ${prazo}\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
             break;
+        case 'verificacao_programa':
+            assunto = `URGENTE – Envio de Programa Pendente – ${disc}`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nEntro em contato para informar que o prazo para envio do programa da disciplina *${disc}* expirou em ${prazo} e o programa ainda não foi recebido pela coordenação.\n\nSolicito com urgência o envio o mais breve possível.\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
+            break;
         case 'elaboracao_prova':
             assunto = `Elaboração de Prova – ${disc} – ${evento.prova.nome}`;
             corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nSolicito a elaboração da *${evento.prova.nome}* da disciplina *${disc}*, cuja aplicação está prevista para ${formatDate(parseDate(evento.prova.data))}.\n\nSegue em anexo o modelo de prova para preenchimento.\n\nPrazo para envio da prova elaborada: ${prazo}\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
@@ -1415,10 +1432,10 @@ function gerarEmailProficiencia(evento) {
     let assunto, corpo;
     if (evento.tipo === 'prof_comunicado') {
         assunto = `Prova de Proficiência – ${dataProva}`;
-        corpo = `Prezados alunos,\n\nInformamos que a próxima *Prova de Proficiência* está programada para:\n\n*Data: ${dataProva}*\n${horarioStr}\n*Modalidade: Online*\nA prova é *${tipoLabel}*.\n\n*Prazo para inscrição: ${prazoInscricao}*\n\nPara mais informações sobre como se inscrever, entre em contato com a coordenação.\n\nAtenciosamente,\nCoordenação`;
+        corpo = `Prezados alunos,\n\nInformamos que a próxima *Prova de Proficiência* está programada para:\n\n*Data: ${dataProva}*\n${horarioStr}*Modalidade: Online*\n\nA prova é *${tipoLabel}*.\n\n*Prazo para inscrição: ${prazoInscricao}*\n\nPara mais informações sobre como se inscrever, entre em contato com a coordenação.\n\nAtenciosamente,\nCoordenação`;
     } else {
         assunto = `Lembrete – Prova de Proficiência – ${dataProva}`;
-        corpo = `Prezados alunos,\n\nLembramos que a *Prova de Proficiência* está programada para:\n\n*Data: ${dataProva}*\n${horarioStr}\nA prova é *${tipoLabel}*.\n\nAtenção: o prazo para inscrição é *${prazoInscricao}*. Não deixe para a última hora!\n\nPara mais informações sobre como se inscrever, entre em contato com a coordenação.\n\nAtenciosamente,\nCoordenação`;
+        corpo = `Prezados alunos,\n\nLembramos que a *Prova de Proficiência* está programada para:\n\n*Data: ${dataProva}*\n${horarioStr}*Modalidade: Online*\n\nA prova é *${tipoLabel}*.\n\nAtenção: o prazo para inscrição é *${prazoInscricao}*. Não deixe para a última hora!\n\nPara mais informações sobre como se inscrever, entre em contato com a coordenação.\n\nAtenciosamente,\nCoordenação`;
     }
     return { assunto, corpo, para: '' };
 }
@@ -1630,8 +1647,9 @@ function renderTimeline() {
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     const filtroTexto = (document.getElementById('filtroTarefaDisc')?.value||'').toLowerCase();
     const filtroDisc2 = document.getElementById('filtroTarefaDisc2')?.value||'';
-    const chipsAtivos = new Set(Array.from(document.querySelectorAll('.chip.chip-on')).map(c => c.dataset.sit));
-    const ordem = document.getElementById('ordemTarefas')?.value || 'alfa';
+    const chipsAtivos = new Set(Array.from(document.querySelectorAll('.chip.chip-on[data-sit]')).map(c => c.dataset.sit));
+    const tiposAtivos = new Set(Array.from(document.querySelectorAll('.chip.chip-on[data-tipo]')).map(c => c.dataset.tipo));
+    const ordem = document.getElementById('ordemTarefas')?.value || 'data';
 
     // Popular dropdown de disciplinas
     const sel = document.getElementById('filtroTarefaDisc2');
@@ -1651,6 +1669,7 @@ function renderTimeline() {
     const items = [];
 
     discs.forEach(disc => {
+        if (!tiposAtivos.has('disciplina')) return;
         if (filtroTexto && !disc.nomeDisciplina.toLowerCase().includes(filtroTexto) && !disc.nomeProfessor.toLowerCase().includes(filtroTexto)) return;
         if (filtroDisc2 && disc.id !== filtroDisc2) return;
         const eventos = gerarEventos(disc);
@@ -1662,7 +1681,7 @@ function renderTimeline() {
         items.push({ type: 'disc', disc, eventos, pendentes, concluidos, situacao, proxData, nome: disc.nomeDisciplina });
     });
 
-    if (!filtroDisc2) {
+    if (!filtroDisc2 && tiposAtivos.has('proficiencia')) {
         profs.forEach(prof => {
             const nomeLower = prof.nome.toLowerCase();
             if (filtroTexto && !nomeLower.includes(filtroTexto) && !('proficiência').includes(filtroTexto)) return;
@@ -1751,13 +1770,13 @@ function renderTimeline() {
         const tipoLabel = dataItem.tipoPagamento === 'paga' ? 'Paga' : 'Gratuita';
         const tipoStyle = dataItem.tipoPagamento === 'paga' ? 'color:#e65100; font-weight:700;' : 'color:#2e7d32; font-weight:700;';
         if (isConcluida) {
-            return `<div class="task-card done-card proficiencia">
+            return `<div class="task-card done-card">
                 <div class="task-card-header">
                     <div><h3>Prova de Proficiência</h3><p class="task-professor">${escapeHtml(prof.nome)} &nbsp;·&nbsp; ${dataProvaFmt} &nbsp;·&nbsp; <span style="${tipoStyle}">${tipoLabel}</span></p></div>
                     <span class="badge badge-done">Concluída</span>
                 </div>
                 <div class="task-done-msg">✓ Todas as ${totalEtapas} etapas concluídas!</div>
-                <div class="task-progress-bar"><div class="task-progress-fill" style="width:100%; background:#6a1b9a;"></div></div>
+                <div class="task-progress-bar"><div class="task-progress-fill" style="width:100%;"></div></div>
                 <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
                     <button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerProficiencia('${prof.id}',${di})">↩ Desfazer última etapa</button>
                     <button class="btn btn-secondary btn-sm" onclick="verEtapasProficiencia('${prof.id}',${di})">Ver Etapas</button>
@@ -1766,7 +1785,7 @@ function renderTimeline() {
         }
         const proxima = pendentes[0];
         const etapaNum = concluidos.length + 1;
-        return `<div class="task-card ${cardClassMap[situacao]} proficiencia">
+        return `<div class="task-card ${cardClassMap[situacao]}">
             <div class="task-card-header">
                 <div><h3>Prova de Proficiência</h3><p class="task-professor">${escapeHtml(prof.nome)} &nbsp;·&nbsp; ${dataProvaFmt} &nbsp;·&nbsp; <span style="${tipoStyle}">${tipoLabel}</span></p></div>
                 <span class="badge ${badgeMap[situacao]}">${labelMap[situacao]}</span>
@@ -1779,13 +1798,13 @@ function renderTimeline() {
             </div>
             <div class="task-actions" style="justify-content:space-between; align-items:flex-end;">
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                    <button class="btn btn-primary btn-sm" style="background:#6a1b9a;" onclick='verEmail(${JSON.stringify(proxima.key)})'>✉ Ver E-mail</button>
+                    <button class="btn btn-primary btn-sm" onclick='verEmail(${JSON.stringify(proxima.key)})'>✉ Ver E-mail</button>
                     <button class="btn btn-success btn-sm" onclick="marcarFeito('${proxima.key}')">✓ Marcar como Feito</button>
                     ${concluidos.length > 0 ? `<button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerProficiencia('${prof.id}',${di})">↩ Desfazer</button>` : ''}
                 </div>
                 <button class="btn btn-secondary btn-sm" style="flex-shrink:0;" onclick="verEtapasProficiencia('${prof.id}',${di})">Ver Etapas</button>
             </div>
-            <div class="task-progress-bar"><div class="task-progress-fill" style="width:${pct}%; background:#6a1b9a;"></div></div>
+            <div class="task-progress-bar"><div class="task-progress-fill" style="width:${pct}%;"></div></div>
         </div>`;
     });
 
@@ -1856,6 +1875,12 @@ async function desfazerProficiencia(profId, di) {
 }
 
 function toggleChip(el) {
+    el.classList.toggle('chip-on');
+    const box = el.querySelector('.chip-box');
+    if (box) box.textContent = el.classList.contains('chip-on') ? '✓' : '';
+    renderTimeline();
+}
+function toggleChipTipo(el) {
     el.classList.toggle('chip-on');
     const box = el.querySelector('.chip-box');
     if (box) box.textContent = el.classList.contains('chip-on') ? '✓' : '';
