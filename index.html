@@ -11,14 +11,22 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; min-height: 100vh; }
-        header { background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 20px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        header h1 { font-size: 1.5rem; font-weight: 600; }
-        header p { font-size: 0.85rem; opacity: 0.8; margin-top: 4px; }
-        .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
-        .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { padding: 10px 20px; border: none; border-radius: 8px; background: white; color: #555; font-size: 0.9rem; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.2s; font-weight: 500; }
-        .tab-btn:hover { background: #e8eaf6; }
-        .tab-btn.active { background: #1a237e; color: white; }
+        header { background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 16px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 60px; }
+        header h1 { font-size: 1.3rem; font-weight: 600; }
+        header p { font-size: 0.8rem; opacity: 0.8; margin-top: 2px; }
+        .app-layout { min-height: calc(100vh - 60px); margin-top: 60px; }
+        .sidebar { width: 260px; background: white; border-right: 1px solid #e0e0e0; position: fixed; top: 60px; bottom: 0; left: 0; overflow-y: auto; z-index: 90; box-shadow: 2px 0 8px rgba(0,0,0,0.04); }
+        .sidebar-nav { padding: 16px 0; }
+        .sidebar-nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; font-size: 0.9rem; font-weight: 500; color: #555; cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent; text-decoration: none; }
+        .sidebar-nav-item:hover { background: #f5f6fa; color: #1a237e; }
+        .sidebar-nav-item.active { background: #e8eaf6; color: #1a237e; font-weight: 600; border-left-color: #1a237e; }
+        .sidebar-nav-item svg { flex-shrink: 0; }
+        .sidebar-separator { height: 1px; background: #e8eaf6; margin: 8px 20px; }
+        .sidebar-section-label { font-size: 0.7rem; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 24px 4px; }
+        .main-area { margin-left: 260px; display: flex; justify-content: center; padding: 24px 32px; min-height: calc(100vh - 60px); }
+        .container { width: 100%; max-width: 1060px; }
+        .tabs { display: none; }
+        .tab-btn { display: none; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 20px; }
@@ -223,6 +231,14 @@
         .dep-card { background: white; border-radius: 10px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 10px; border-left: 4px solid #00695c; }
         .dep-card h3 { color: #00695c; font-size: 1rem; margin-bottom: 8px; }
         .dep-disc-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: #f5f5f5; border-radius: 6px; margin-top: 6px; font-size: 0.85rem; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; z-index: 200; }
+            .sidebar.open { transform: translateX(0); }
+            .container { margin-left: 0; padding: 16px; }
+            .sidebar-overlay { display: none; position: fixed; top: 60px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 190; }
+            .sidebar-overlay.active { display: block; }
+            .hamburger { display: flex !important; }
+        }
         @media (max-width: 600px) {
             .form-grid { grid-template-columns: 1fr; }
             .prova-entry, .trabalho-entry { flex-direction: column; }
@@ -231,6 +247,7 @@
             .users-table { font-size: 0.75rem; }
             .users-table th, .users-table td { padding: 6px 8px; }
         }
+        .hamburger { display: none; background: none; border: none; color: white; cursor: pointer; padding: 4px; margin-right: 12px; }
     </style>
 </head>
 <body>
@@ -341,32 +358,57 @@
 
 <header>
     <div class="header-content">
-        <div>
-            <h1>Sistema de Gerenciamento de Provas</h1>
-            <p>Painel da Coordenação</p>
+        <div style="display:flex; align-items:center;">
+            <button class="hamburger" onclick="toggleSidebar()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <div>
+                <h1>Sistema de Gerenciamento de Provas</h1>
+            </div>
         </div>
         <div class="user-info">
             <span id="headerUserName" style="font-size:0.85rem; opacity:0.9;"></span>
             <span id="headerRoleBadge" style="display:none;"></span>
-            <button class="btn-header" onclick="switchTab('perfil')">Meu Perfil</button>
-            <button class="btn-header" onclick="fazerLogout()">Sair</button>
         </div>
     </div>
 </header>
 
-<div class="container">
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('cadastro')">+ Nova Disciplina</button>
-        <button class="tab-btn" onclick="switchTab('proficiencia')">Proficiência</button>
-        <button class="tab-btn" onclick="switchTab('dependencia')">Dependência</button>
-        <button class="tab-btn" onclick="switchTab('disciplinas')">Disciplinas</button>
-        <button class="tab-btn" onclick="switchTab('timeline')">Tarefas</button>
-        <button class="tab-btn" id="tabBtnAdmin" onclick="switchTab('admin')" style="display:none;">Usuários</button>
-        <button class="tab-btn" onclick="switchTab('perfil')">Meu Perfil</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<div class="app-layout">
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-nav">
+        <div class="sidebar-nav-item active" onclick="switchTab('timeline')" data-tab="timeline">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/></svg>
+            Tarefas
+        </div>
+        <div class="sidebar-nav-item" onclick="switchTab('disciplinas')" data-tab="disciplinas">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            Disciplinas
+        </div>
+        <div class="sidebar-nav-item" onclick="switchTab('proficiencia')" data-tab="proficiencia">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Proficiência
+        </div>
+        <div class="sidebar-nav-item" onclick="switchTab('dependencia')" data-tab="dependencia">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            Dependência
+        </div>
+        <div class="sidebar-separator"></div>
+        <div class="sidebar-nav-item" id="sidebarBtnAdmin" onclick="switchTab('admin')" data-tab="admin" style="display:none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Usuários
+        </div>
+        <div class="sidebar-nav-item" onclick="switchTab('perfil')" data-tab="perfil">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Minha Conta
+        </div>
     </div>
+</nav>
+<div class="main-area">
+<div class="container">
 
-    <!-- TAB: Cadastro -->
-    <div id="tab-cadastro" class="tab-content active">
+    <!-- TAB: Disciplinas (Cadastro + Lista) -->
+    <div id="tab-disciplinas" class="tab-content">
         <div class="card">
             <h2>Cadastrar Disciplina</h2>
             <form id="formDisciplina">
@@ -440,6 +482,13 @@
                     <button type="button" class="btn btn-secondary" onclick="limparFormulario()">Limpar</button>
                 </div>
             </form>
+        </div>
+        <div class="card">
+            <h2>Disciplinas Cadastradas</h2>
+            <div class="filters">
+                <input type="text" id="filtroNome" placeholder="Buscar disciplina..." oninput="renderDisciplinas()">
+            </div>
+            <div id="listaDisciplinas" class="disc-list"></div>
         </div>
     </div>
 
@@ -518,19 +567,8 @@
         </div>
     </div>
 
-    <!-- TAB: Disciplinas -->
-    <div id="tab-disciplinas" class="tab-content">
-        <div class="card">
-            <h2>Disciplinas Cadastradas</h2>
-            <div class="filters">
-                <input type="text" id="filtroNome" placeholder="Buscar disciplina..." oninput="renderDisciplinas()">
-            </div>
-            <div id="listaDisciplinas" class="disc-list"></div>
-        </div>
-    </div>
-
     <!-- TAB: Tarefas -->
-    <div id="tab-timeline" class="tab-content">
+    <div id="tab-timeline" class="tab-content active">
         <div class="card">
             <h2>Tarefas</h2>
             <div class="task-filters">
@@ -640,9 +678,17 @@
                     <button class="btn btn-primary" onclick="alterarSenhaPerfil()">Alterar Senha</button>
                 </div>
             </div>
+            <div style="border-top: 2px solid #e8eaf6; padding-top: 16px; margin-top: 16px;">
+                <button class="btn btn-danger" onclick="fazerLogout()" style="width:100%;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:8px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Sair do Sistema
+                </button>
+            </div>
         </div>
     </div>
-</div>
+</div><!-- /container -->
+</div><!-- /main-area -->
+</div><!-- /app-layout -->
 
 <!-- Modal de E-mail -->
 <div class="modal-overlay" id="modalEmail">
@@ -1092,18 +1138,18 @@ function iniciarApp() {
     const roleBadge = document.getElementById('headerRoleBadge');
     if (currentUserProfile.role === 'admin') {
         roleBadge.textContent = 'Admin'; roleBadge.className = 'role-badge role-admin';
-        document.getElementById('tabBtnAdmin').style.display = '';
+        document.getElementById('sidebarBtnAdmin').style.display = '';
     } else {
         roleBadge.textContent = 'Coordenador'; roleBadge.className = 'role-badge role-user';
-        document.getElementById('tabBtnAdmin').style.display = 'none';
+        document.getElementById('sidebarBtnAdmin').style.display = 'none';
     }
     document.getElementById('perfilNome').textContent = currentUserProfile.nome;
     document.getElementById('perfilEmail').textContent = currentUserProfile.email;
     document.getElementById('perfilRole').textContent = currentUserProfile.role === 'admin' ? 'Administrador' : 'Coordenador';
-    const abas = ['cadastro', 'proficiencia', 'dependencia', 'disciplinas', 'timeline', 'perfil'];
+    const abas = ['disciplinas', 'proficiencia', 'dependencia', 'timeline', 'perfil'];
     if (currentUserProfile.role === 'admin') abas.push('admin');
     const abaSalva = sessionStorage.getItem('activeTab');
-    switchTab(abas.includes(abaSalva) ? abaSalva : 'cadastro');
+    switchTab(abas.includes(abaSalva) ? abaSalva : 'timeline');
     if (currentUserProfile.role === 'admin') renderAdminUsuarios();
 }
 
@@ -1682,11 +1728,11 @@ function gerarEmailDependencia(evento) {
             return { assunto, corpo, para: '' };
         case 'dep_correcao':
             assunto = `Correção de Prova de Dependência – ${disciplina}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nInformo que a prova de dependência da disciplina *${disciplina}* foi aplicada em ${dataProva}.\n\nSolicito que:\n• Realize a correção das provas;\n• Lance as notas no portal acadêmico;\n• Entregue as provas corrigidas no atendimento.\n\nPrazo: ${prazo}\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nInformo que a prova de dependência da disciplina *${disciplina}* foi aplicada em ${dataProva}.\n\nSolicito que:\n• Realize a correção das provas;\n• Lance as notas no portal acadêmico;\n• Envie mensagem aos alunos informando que as notas foram lançadas;\n• Entregue as provas corrigidas, fisicamente ou por e-mail.\n\nPrazo: ${prazo}\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'dep_nota':
             assunto = `URGENTE – Lançamento de Nota Pendente – Dependência – ${disciplina}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nEntro em contato para verificar o lançamento das notas da prova de dependência de *${disciplina}*.\n\nO prazo para correção e lançamento expirou em ${prazo} e as notas ainda não constam no portal acadêmico.\n\nSolicito com urgência que:\n• Realize a correção das provas;\n• Lance as notas no portal acadêmico;\n• Entregue as provas corrigidas no atendimento.\n\nCaso já tenha realizado todos os procedimentos, por favor desconsidere este e-mail.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nEntro em contato para verificar o lançamento das notas da prova de dependência de *${disciplina}*.\n\nO prazo para correção e lançamento expirou em ${prazo} e as notas ainda não constam no portal acadêmico.\n\nSolicito com urgência que:\n• Lance as notas no portal acadêmico;\n• Envie mensagem aos alunos informando que as notas foram lançadas;\n• Entregue as provas corrigidas, fisicamente ou por e-mail.\n\nCaso já tenha realizado o lançamento, por favor desconsidere este e-mail.\n\nAtenciosamente,\nCoordenação`;
             break;
     }
     return { assunto, corpo, para: disc.emailProfessor };
@@ -2583,17 +2629,35 @@ function renderPendencias() {
 // TABS
 // ==========================================
 function switchTab(name) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    // Map old 'cadastro' tab to 'disciplinas'
+    if (name === 'cadastro') name = 'disciplinas';
+
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById('tab-'+name).classList.add('active');
-    const btn = document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`);
-    if (btn) btn.classList.add('active');
+    const tabEl = document.getElementById('tab-'+name);
+    if (tabEl) tabEl.classList.add('active');
+
+    // Update sidebar active state
+    document.querySelectorAll('.sidebar-nav-item').forEach(item => item.classList.remove('active'));
+    const sidebarItem = document.querySelector(`.sidebar-nav-item[data-tab="${name}"]`);
+    if (sidebarItem) sidebarItem.classList.add('active');
+
     if (name==='disciplinas') renderDisciplinas();
     if (name==='timeline') renderTimeline();
     if (name==='proficiencia') renderProficiencias();
     if (name==='dependencia') renderDependencias();
     if (name==='admin' && currentUserProfile?.role==='admin') renderAdminUsuarios();
     sessionStorage.setItem('activeTab', name);
+
+    // Close sidebar on mobile
+    if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('active');
+    }
+}
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('active');
 }
 
 // ==========================================
