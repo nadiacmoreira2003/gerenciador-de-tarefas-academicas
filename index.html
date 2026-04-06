@@ -1,4 +1,6 @@
 
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -248,6 +250,26 @@
             .users-table th, .users-table td { padding: 6px 8px; }
         }
         .hamburger { display: none; background: none; border: none; color: white; cursor: pointer; padding: 4px; margin-right: 12px; }
+        /* Grupos de Trabalho */
+        .group-selector { background: rgba(255,255,255,0.18); color: white; border: 1px solid rgba(255,255,255,0.35); padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-right: 10px; max-width: 200px; }
+        .group-selector option { color: #333; }
+        .group-chip-select { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e0e0e0; }
+        .group-chip-select .empty { font-size: 0.8rem; color: #999; padding: 4px; }
+        .group-chip-select label { display: flex; align-items: center; gap: 6px; background: white; padding: 6px 12px; border-radius: 8px; font-size: 0.82rem; cursor: pointer; border: 1px solid #e0e0e0; user-select: none; }
+        .group-chip-select label:hover { background: #e8eaf6; }
+        .group-chip-select input[type="checkbox"] { width: 16px; height: 16px; accent-color: #1a237e; cursor: pointer; }
+        .group-chip-select-wrapper { margin-top: 12px; }
+        .group-chip-select-wrapper > label.section-label { font-size: 0.8rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; display: block; }
+        .group-admin-card { background: white; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid #1a237e; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .group-admin-card h3 { color: #1a237e; font-size: 1rem; margin-bottom: 6px; }
+        .group-members-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+        .group-member-chip { background: #e8eaf6; color: #1a237e; padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+        .group-member-chip button { background: none; border: none; color: #c62828; cursor: pointer; font-weight: 700; padding: 0; margin-left: 2px; font-size: 1rem; line-height: 1; }
+        .group-add-member { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+        .group-add-member select { flex: 1; min-width: 160px; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; }
+        .criador-tag { display: inline-block; background: #fff3e0; color: #e65100; padding: 1px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 600; margin-left: 6px; vertical-align: middle; }
+        .groups-inline { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+        .groups-inline .gi-badge { background: #e8eaf6; color: #1a237e; padding: 1px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -367,6 +389,7 @@
             </div>
         </div>
         <div class="user-info">
+            <select id="headerGroupSelector" class="group-selector" onchange="switchGroupContext(this.value)" style="display:none;" title="Grupo de Trabalho ativo"></select>
             <span id="headerUserName" style="font-size:0.85rem; opacity:0.9;"></span>
             <span id="headerRoleBadge" style="display:none;"></span>
         </div>
@@ -396,7 +419,7 @@
         <div class="sidebar-separator"></div>
         <div class="sidebar-nav-item" id="sidebarBtnAdmin" onclick="switchTab('admin')" data-tab="admin" style="display:none;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            Usuários
+            Usuários &amp; Grupos
         </div>
         <div class="sidebar-nav-item" onclick="switchTab('perfil')" data-tab="perfil">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -477,6 +500,10 @@
                     <div id="trabalhosContainer"></div>
                     <button type="button" class="btn-add-prova" onclick="adicionarTrabalho()">+ Adicionar Trabalho</button>
                 </div>
+                <div class="group-chip-select-wrapper">
+                    <label class="section-label">Vincular a Grupo(s) de Trabalho</label>
+                    <div id="discGruposContainer" class="group-chip-select"></div>
+                </div>
                 <div class="btn-group">
                     <button type="button" class="btn btn-primary" onclick="salvarDisciplina()">Salvar Disciplina</button>
                     <button type="button" class="btn btn-secondary" onclick="limparFormulario()">Limpar</button>
@@ -506,6 +533,10 @@
                 <h2 style="margin-top:16px;">Datas das Provas</h2>
                 <div id="profDatasContainer"></div>
                 <button type="button" class="btn-add-prova" onclick="adicionarDataProf()">+ Adicionar Data</button>
+            </div>
+            <div class="group-chip-select-wrapper">
+                <label class="section-label">Vincular a Grupo(s) de Trabalho</label>
+                <div id="profGruposContainer" class="group-chip-select"></div>
             </div>
             <div class="btn-group" style="margin-top:16px;">
                 <button type="button" class="btn btn-primary" onclick="salvarProficiencia()">Salvar Proficiência</button>
@@ -555,6 +586,10 @@
                 <h2 style="margin-top:16px;">Disciplinas</h2>
                 <div id="depDiscContainer"></div>
                 <button type="button" class="btn-add-prova" onclick="adicionarDiscDep()">+ Adicionar Disciplina</button>
+            </div>
+            <div class="group-chip-select-wrapper">
+                <label class="section-label">Vincular a Grupo(s) de Trabalho</label>
+                <div id="depGruposContainer" class="group-chip-select"></div>
             </div>
             <div class="btn-group" style="margin-top:16px;">
                 <button type="button" class="btn btn-primary" onclick="salvarDependencia()">Salvar Dependência</button>
@@ -645,6 +680,20 @@
         <div class="card">
             <h2>Usuários Cadastrados</h2>
             <div id="adminListaUsuarios"></div>
+        </div>
+        <div class="card">
+            <h2>Grupos de Trabalho</h2>
+            <p style="font-size:0.82rem; color:#666; margin-bottom:12px;">Crie grupos para compartilhar disciplinas, proficiências e dependências entre os coordenadores. Todos os membros de um grupo veem os mesmos itens vinculados àquele grupo.</p>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Nome do Grupo</label>
+                    <input type="text" id="adminNovoGrupo" placeholder="Ex: Coordenação Graduação 2026">
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="criarGrupoTrabalho()">Criar Grupo</button>
+            </div>
+            <div id="adminListaGrupos" style="margin-top:20px;"></div>
         </div>
     </div>
 
@@ -756,6 +805,10 @@
                 <div id="editTrabalhosContainer"></div>
                 <button type="button" class="btn-add-prova" onclick="adicionarTrabalhoEdit()">+ Adicionar Trabalho</button>
             </div>
+            <div class="group-chip-select-wrapper">
+                <label class="section-label">Vincular a Grupo(s) de Trabalho</label>
+                <div id="editDiscGruposContainer" class="group-chip-select"></div>
+            </div>
             <div class="btn-group">
                 <button type="submit" class="btn btn-primary">Salvar Alterações</button>
                 <button type="button" class="btn btn-secondary" onclick="fecharModalEditar()">Cancelar</button>
@@ -811,6 +864,10 @@
             <div id="editProfDatasContainer"></div>
             <button type="button" class="btn-add-prova" onclick="adicionarDataProfEdit()">+ Adicionar Data</button>
         </div>
+        <div class="group-chip-select-wrapper">
+            <label class="section-label">Vincular a Grupo(s) de Trabalho</label>
+            <div id="editProfGruposContainer" class="group-chip-select"></div>
+        </div>
         <div class="modal-actions" style="margin-top:16px;">
             <button class="btn btn-secondary btn-sm" onclick="fecharModalEditarProf()">Cancelar</button>
             <button class="btn btn-primary btn-sm" onclick="salvarEdicaoProf()">Salvar Alterações</button>
@@ -841,9 +898,29 @@
             <div id="editDepDiscContainer"></div>
             <button type="button" class="btn-add-prova" onclick="adicionarDiscDepEdit()">+ Adicionar Disciplina</button>
         </div>
+        <div class="group-chip-select-wrapper">
+            <label class="section-label">Vincular a Grupo(s) de Trabalho</label>
+            <div id="editDepGruposContainer" class="group-chip-select"></div>
+        </div>
         <div class="modal-actions" style="margin-top:16px;">
             <button class="btn btn-secondary btn-sm" onclick="fecharModalEditarDep()">Cancelar</button>
             <button class="btn btn-primary btn-sm" onclick="salvarEdicaoDep()">Salvar Alterações</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Grupos (atalho) -->
+<div class="modal-overlay" id="modalEditarGrupos">
+    <div class="modal" style="max-width:520px;">
+        <h3>Editar Grupos de Trabalho</h3>
+        <p id="modalEditarGruposItemNome" style="font-size:0.85rem; color:#666; margin-bottom:10px;"></p>
+        <input type="hidden" id="modalEditarGruposTipo">
+        <input type="hidden" id="modalEditarGruposItemId">
+        <p style="font-size:0.78rem; color:#888; margin-bottom:4px;">Selecione os grupos em que este item será compartilhado. Desmarque todos para deixá-lo como <b>pessoal</b>.</p>
+        <div id="modalEditarGruposChips" class="group-chip-select"></div>
+        <div class="modal-actions" style="margin-top:16px;">
+            <button class="btn btn-secondary btn-sm" onclick="fecharModalEditarGrupos()">Cancelar</button>
+            <button class="btn btn-primary btn-sm" onclick="salvarEdicaoGruposItem()">Salvar</button>
         </div>
     </div>
 </div>
@@ -873,12 +950,13 @@ const db = firebase.firestore();
 // ==========================================
 let currentUser = null;
 let currentUserProfile = null;
-let cachedDisciplinas = [];
-let cachedProficiencias = [];
-let cachedDependencias = [];
-let cachedStatus = {};
 let cachedEmailBib = '';
 let ultimoUsuarioCriado = null;
+// Grupos de Trabalho
+let cachedGroups = [];            // grupos visíveis ao usuário
+let cachedAllUsers = [];          // todos os usuários (para admin & rotulagem)
+let currentGroupId = 'pessoal';   // 'pessoal' | groupId | 'todos' (admin)
+let allUserData = {};             // {uid: {disciplinas, proficiencias, dependencias, emailStatus}}
 const SYSTEM_URL = window.location.href;
 
 // ==========================================
@@ -1070,7 +1148,8 @@ async function fazerLogin() {
 }
 
 async function fazerLogout() {
-    cachedDisciplinas = []; cachedStatus = {}; cachedEmailBib = '';
+    allUserData = {}; cachedGroups = []; cachedAllUsers = []; cachedEmailBib = '';
+    currentGroupId = 'pessoal';
     await auth.signOut();
     document.getElementById('loginEmail').value = '';
     document.getElementById('loginSenha').value = '';
@@ -1114,19 +1193,106 @@ async function trocarSenhaPrimeiroAcesso() {
 // ==========================================
 async function loadUserData() {
     try {
+        // 1. Garantir que o doc do usuário exista
         const doc = await firestoreGet(db.collection('userData').doc(currentUser.uid));
-        if (doc.exists) {
-            const data = doc.data();
-            cachedDisciplinas = data.disciplinas || [];
-            cachedProficiencias = data.proficiencias || [];
-            cachedDependencias = data.dependencias || [];
-            cachedStatus = data.emailStatus || {};
-            cachedEmailBib = data.emailBiblioteca || '';
-        } else {
+        if (!doc.exists) {
             await db.collection('userData').doc(currentUser.uid).set({ disciplinas: [], proficiencias: [], dependencias: [], emailStatus: {}, emailBiblioteca: '' });
-            cachedDisciplinas = []; cachedProficiencias = []; cachedDependencias = []; cachedStatus = {}; cachedEmailBib = '';
         }
+        cachedEmailBib = doc.exists ? (doc.data().emailBiblioteca || '') : '';
+
+        // 2. Carregar todos os usuários (usado para rotulagem e admin)
+        try {
+            const usersSnap = await db.collection('users').get();
+            cachedAllUsers = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e) { cachedAllUsers = []; }
+
+        // 3. Carregar grupos
+        await loadGroups();
+
+        // 4. Carregar dados relevantes (próprios + de todos os membros de grupos compartilhados)
+        await loadRelevantUserData();
+
+        // 5. Restaurar contexto ativo
+        const savedCtx = localStorage.getItem('currentGroupId') || 'pessoal';
+        if (savedCtx === 'pessoal' || savedCtx === 'todos' || cachedGroups.some(g => g.id === savedCtx)) {
+            currentGroupId = savedCtx;
+        } else {
+            currentGroupId = 'pessoal';
+        }
+        if (currentGroupId === 'todos' && currentUserProfile?.role !== 'admin') currentGroupId = 'pessoal';
     } catch (err) { console.error('Erro ao carregar dados:', err); }
+}
+
+async function loadGroups() {
+    try {
+        if (currentUserProfile?.role === 'admin') {
+            const snap = await db.collection('groups').get();
+            cachedGroups = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } else {
+            const snap = await db.collection('groups').where('members', 'array-contains', currentUser.uid).get();
+            cachedGroups = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        }
+        cachedGroups.sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+    } catch (err) {
+        console.error('Erro ao carregar grupos:', err);
+        cachedGroups = [];
+    }
+}
+
+async function loadRelevantUserData() {
+    // Coleta os UIDs a carregar
+    const uidsToLoad = new Set();
+    uidsToLoad.add(currentUser.uid);
+    if (currentUserProfile?.role === 'admin') {
+        // Admin carrega todos os usuários
+        cachedAllUsers.forEach(u => uidsToLoad.add(u.id));
+    } else {
+        // Usuário comum carrega os membros dos seus grupos
+        cachedGroups.forEach(g => (g.members || []).forEach(uid => uidsToLoad.add(uid)));
+    }
+    allUserData = {};
+    const promises = Array.from(uidsToLoad).map(async uid => {
+        try {
+            const d = await firestoreGet(db.collection('userData').doc(uid));
+            if (d.exists) {
+                const data = d.data();
+                allUserData[uid] = {
+                    disciplinas: data.disciplinas || [],
+                    proficiencias: data.proficiencias || [],
+                    dependencias: data.dependencias || [],
+                    emailStatus: data.emailStatus || {}
+                };
+            } else {
+                allUserData[uid] = { disciplinas: [], proficiencias: [], dependencias: [], emailStatus: {} };
+            }
+        } catch (e) {
+            allUserData[uid] = { disciplinas: [], proficiencias: [], dependencias: [], emailStatus: {} };
+        }
+    });
+    await Promise.all(promises);
+}
+
+function getUserName(uid) {
+    if (uid === currentUser?.uid) return currentUserProfile?.nome || 'Você';
+    const u = cachedAllUsers.find(x => x.id === uid);
+    return u ? u.nome : 'Usuário';
+}
+
+// Verifica se o item pertence ao contexto atual (pessoal / grupo / todos)
+function itemMatchesContext(item, ownerId) {
+    if (currentGroupId === 'todos') return currentUserProfile?.role === 'admin';
+    if (currentGroupId === 'pessoal') {
+        return ownerId === currentUser.uid && (!item.groupIds || item.groupIds.length === 0);
+    }
+    return Array.isArray(item.groupIds) && item.groupIds.includes(currentGroupId);
+}
+
+function canEditItem(item) {
+    if (currentUserProfile?.role === 'admin') return true;
+    if (!item) return false;
+    // Fallback: itens antigos (sem criadoPor) são editáveis pelo dono do doc (_ownerId)
+    const creator = item.criadoPor || item._ownerId;
+    return creator === currentUser.uid;
 }
 
 // ==========================================
@@ -1146,11 +1312,14 @@ function iniciarApp() {
     document.getElementById('perfilNome').textContent = currentUserProfile.nome;
     document.getElementById('perfilEmail').textContent = currentUserProfile.email;
     document.getElementById('perfilRole').textContent = currentUserProfile.role === 'admin' ? 'Administrador' : 'Coordenador';
+    // Inicializa seletor de grupo e chips nos formulários
+    popularSelectorGrupo();
+    renderGroupChipSelectors();
     const abas = ['disciplinas', 'proficiencia', 'dependencia', 'timeline', 'perfil'];
     if (currentUserProfile.role === 'admin') abas.push('admin');
     const abaSalva = sessionStorage.getItem('activeTab');
     switchTab(abas.includes(abaSalva) ? abaSalva : 'timeline');
-    if (currentUserProfile.role === 'admin') renderAdminUsuarios();
+    if (currentUserProfile.role === 'admin') { renderAdminUsuarios(); renderAdminGrupos(); }
 }
 
 // ==========================================
@@ -1286,6 +1455,130 @@ async function adminResetarSenha(uid) {
 }
 
 // ==========================================
+// ADMIN - GRUPOS DE TRABALHO
+// ==========================================
+async function criarGrupoTrabalho() {
+    if (currentUserProfile?.role !== 'admin') { showToast('Apenas administradores podem criar grupos.', true); return; }
+    const nome = document.getElementById('adminNovoGrupo').value.trim();
+    if (!nome) { showToast('Informe um nome para o grupo.', true); return; }
+    try {
+        const ref = await db.collection('groups').add({
+            nome,
+            members: [currentUser.uid],
+            criadoPor: currentUser.uid,
+            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        document.getElementById('adminNovoGrupo').value = '';
+        showToast('Grupo criado!');
+        await loadGroups();
+        await loadRelevantUserData();
+        popularSelectorGrupo();
+        renderGroupChipSelectors();
+        renderAdminGrupos();
+    } catch (err) { showToast('Erro ao criar grupo: ' + err.message, true); }
+}
+
+async function excluirGrupoTrabalho(groupId, nome) {
+    if (currentUserProfile?.role !== 'admin') return;
+    if (!confirm(`Excluir o grupo "${nome}"?\n\nOs itens vinculados a este grupo voltarão a ficar visíveis apenas para seus respectivos criadores (como pessoais).`)) return;
+    try {
+        await db.collection('groups').doc(groupId).delete();
+        // Remove groupId de todos os itens que o referenciam
+        const writes = [];
+        for (const [uid, data] of Object.entries(allUserData)) {
+            let mudou = false;
+            ['disciplinas', 'proficiencias', 'dependencias'].forEach(field => {
+                (data[field] || []).forEach(item => {
+                    if (Array.isArray(item.groupIds) && item.groupIds.includes(groupId)) {
+                        item.groupIds = item.groupIds.filter(g => g !== groupId);
+                        mudou = true;
+                    }
+                });
+            });
+            if (mudou) {
+                writes.push(db.collection('userData').doc(uid).update({
+                    disciplinas: data.disciplinas || [],
+                    proficiencias: data.proficiencias || [],
+                    dependencias: data.dependencias || []
+                }));
+            }
+        }
+        await Promise.all(writes);
+        showToast('Grupo excluído.');
+        if (currentGroupId === groupId) { currentGroupId = 'pessoal'; localStorage.setItem('currentGroupId', 'pessoal'); }
+        await loadGroups();
+        await loadRelevantUserData();
+        popularSelectorGrupo();
+        renderGroupChipSelectors();
+        renderAdminGrupos();
+        renderTimeline();
+    } catch (err) { showToast('Erro: ' + err.message, true); }
+}
+
+async function adicionarMembroGrupo(groupId) {
+    const sel = document.getElementById('addMemberSel_' + groupId);
+    if (!sel) return;
+    const uid = sel.value;
+    if (!uid) { showToast('Selecione um usuário.', true); return; }
+    try {
+        await db.collection('groups').doc(groupId).update({
+            members: firebase.firestore.FieldValue.arrayUnion(uid)
+        });
+        showToast('Membro adicionado!');
+        await loadGroups();
+        await loadRelevantUserData();
+        popularSelectorGrupo();
+        renderAdminGrupos();
+    } catch (err) { showToast('Erro: ' + err.message, true); }
+}
+
+async function removerMembroGrupo(groupId, uid) {
+    if (!confirm('Remover este membro do grupo?')) return;
+    try {
+        await db.collection('groups').doc(groupId).update({
+            members: firebase.firestore.FieldValue.arrayRemove(uid)
+        });
+        showToast('Membro removido.');
+        await loadGroups();
+        await loadRelevantUserData();
+        popularSelectorGrupo();
+        renderAdminGrupos();
+    } catch (err) { showToast('Erro: ' + err.message, true); }
+}
+
+function renderAdminGrupos() {
+    const container = document.getElementById('adminListaGrupos');
+    if (!container) return;
+    if (cachedGroups.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>Nenhum grupo de trabalho cadastrado</p><small>Crie um grupo acima para compartilhar itens entre coordenadores</small></div>';
+        return;
+    }
+    const ativos = cachedAllUsers.filter(u => u.active !== false);
+    container.innerHTML = cachedGroups.map(g => {
+        const memberIds = g.members || [];
+        const memberChips = memberIds.map(uid => {
+            const u = cachedAllUsers.find(x => x.id === uid);
+            const nome = u ? u.nome : 'Usuário';
+            return `<span class="group-member-chip">${escapeHtml(nome)}<button onclick="removerMembroGrupo('${g.id}','${uid}')" title="Remover">&times;</button></span>`;
+        }).join('');
+        const naoMembros = ativos.filter(u => !memberIds.includes(u.id));
+        const opts = naoMembros.map(u => `<option value="${u.id}">${escapeHtml(u.nome)} (${escapeHtml(u.email)})</option>`).join('');
+        return `<div class="group-admin-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>${escapeHtml(g.nome)}</h3>
+                <button class="btn btn-danger btn-sm" onclick="excluirGrupoTrabalho('${g.id}', ${JSON.stringify(g.nome)})">Excluir Grupo</button>
+            </div>
+            <div style="font-size:0.78rem; color:#888; margin-bottom:4px;">${memberIds.length} ${memberIds.length === 1 ? 'membro' : 'membros'}</div>
+            <div class="group-members-list">${memberChips || '<span style="font-size:0.8rem; color:#999;">Sem membros ainda</span>'}</div>
+            ${naoMembros.length > 0 ? `<div class="group-add-member">
+                <select id="addMemberSel_${g.id}"><option value="">+ Adicionar membro...</option>${opts}</select>
+                <button class="btn btn-primary btn-sm" onclick="adicionarMembroGrupo('${g.id}')">Adicionar</button>
+            </div>` : '<p style="font-size:0.78rem; color:#999; margin-top:6px;">Todos os usuários ativos já estão neste grupo.</p>'}
+        </div>`;
+    }).join('');
+}
+
+// ==========================================
 // PERFIL - ALTERAR SENHA
 // ==========================================
 async function alterarSenhaPerfil() {
@@ -1311,40 +1604,236 @@ async function alterarSenhaPerfil() {
 }
 
 // ==========================================
-// STORAGE (Firestore + cache)
+// STORAGE (Firestore + cache) — agregado por grupo
 // ==========================================
-function getDisciplinas() { return cachedDisciplinas; }
-function getProficiencias() { return cachedProficiencias; }
-function getStatus() { return cachedStatus; }
+function _getAggregated(field) {
+    const items = [];
+    Object.entries(allUserData).forEach(([uid, data]) => {
+        (data[field] || []).forEach(item => {
+            if (itemMatchesContext(item, uid)) items.push({ ...item, _ownerId: uid });
+        });
+    });
+    return items;
+}
+function getDisciplinas() { return _getAggregated('disciplinas'); }
+function getProficiencias() { return _getAggregated('proficiencias'); }
+function getDependencias() { return _getAggregated('dependencias'); }
+function getStatus() {
+    // Status agregado: combina todos os emailStatus dos donos relevantes
+    const merged = {};
+    Object.entries(allUserData).forEach(([uid, data]) => {
+        Object.assign(merged, data.emailStatus || {});
+    });
+    return merged;
+}
 function getEmailBiblioteca() { return cachedEmailBib; }
 
-async function saveDisciplinas(arr) {
-    cachedDisciplinas = arr;
-    try { await db.collection('userData').doc(currentUser.uid).update({ disciplinas: arr }); }
-    catch (err) { showToast('Erro ao salvar. Verifique a conexão.', true); }
+// Descobre o owner de um item pela chave de status (prefixo = id do item)
+function _findOwnerByKey(key) {
+    const itemId = key.split('_')[0];
+    for (const [uid, data] of Object.entries(allUserData)) {
+        if ((data.disciplinas || []).some(d => d.id === itemId)) return uid;
+        if ((data.proficiencias || []).some(p => p.id === itemId)) return uid;
+        if ((data.dependencias || []).some(d => d.id === itemId)) return uid;
+    }
+    return currentUser.uid;
 }
-async function saveProficiencias(arr) {
-    cachedProficiencias = arr;
-    try { await db.collection('userData').doc(currentUser.uid).update({ proficiencias: arr }); }
-    catch (err) { showToast('Erro ao salvar. Verifique a conexão.', true); }
+
+// Persiste o array completo de um field de um único usuário
+async function _writeField(uid, field, arr) {
+    allUserData[uid] = allUserData[uid] || { disciplinas: [], proficiencias: [], dependencias: [], emailStatus: {} };
+    allUserData[uid][field] = arr;
+    try { await db.collection('userData').doc(uid).update({ [field]: arr }); }
+    catch (err) { showToast('Erro ao salvar. Verifique a conexão.', true); console.error(err); }
 }
-function getDependencias() { return cachedDependencias; }
-async function saveDependencias(arr) {
-    cachedDependencias = arr;
-    try { await db.collection('userData').doc(currentUser.uid).update({ dependencias: arr }); }
-    catch (err) { showToast('Erro ao salvar. Verifique a conexão.', true); }
+
+// Reconstrói arrays por owner a partir de um array agregado de itens visíveis
+async function _saveAggregated(field, arr) {
+    // Para cada owner conhecido, remove os itens que estavam no contexto atual (serão substituídos)
+    const byOwner = {};
+    Object.entries(allUserData).forEach(([uid, data]) => {
+        byOwner[uid] = (data[field] || []).filter(item => !itemMatchesContext(item, uid));
+    });
+    // Adiciona os itens do arr de volta ao owner correto
+    arr.forEach(item => {
+        const ownerId = item._ownerId || currentUser.uid;
+        const clean = { ...item }; delete clean._ownerId;
+        if (!byOwner[ownerId]) byOwner[ownerId] = [];
+        byOwner[ownerId].push(clean);
+    });
+    // Escreve apenas docs que mudaram
+    const writes = [];
+    for (const [uid, items] of Object.entries(byOwner)) {
+        const old = JSON.stringify((allUserData[uid] && allUserData[uid][field]) || []);
+        const cur = JSON.stringify(items);
+        if (old !== cur) writes.push(_writeField(uid, field, items));
+    }
+    await Promise.all(writes);
 }
+
+async function saveDisciplinas(arr)   { await _saveAggregated('disciplinas', arr); }
+async function saveProficiencias(arr) { await _saveAggregated('proficiencias', arr); }
+async function saveDependencias(arr)  { await _saveAggregated('dependencias', arr); }
+
 async function saveStatus(obj) {
-    cachedStatus = obj;
-    try { await db.collection('userData').doc(currentUser.uid).update({ emailStatus: obj }); }
-    catch (err) { console.error(err); }
+    // Recebe o status agregado. Precisamos dividir por owner.
+    // Agrupa chaves por owner
+    const byOwner = {}; // uid -> { key: true }
+    Object.keys(obj).forEach(key => {
+        const uid = _findOwnerByKey(key);
+        if (!byOwner[uid]) byOwner[uid] = {};
+        byOwner[uid][key] = obj[key];
+    });
+    // Garante que owners sem chaves novas tenham objeto vazio (para apagar os desmarcados)
+    Object.keys(allUserData).forEach(uid => { if (!byOwner[uid]) byOwner[uid] = {}; });
+    // Filtra: só escreve em owners cujo status mudou
+    const writes = [];
+    for (const [uid, st] of Object.entries(byOwner)) {
+        const old = JSON.stringify((allUserData[uid] && allUserData[uid].emailStatus) || {});
+        const cur = JSON.stringify(st);
+        if (old !== cur) {
+            allUserData[uid] = allUserData[uid] || { disciplinas: [], proficiencias: [], dependencias: [], emailStatus: {} };
+            allUserData[uid].emailStatus = st;
+            writes.push(
+                db.collection('userData').doc(uid).update({ emailStatus: st }).catch(e => console.error(e))
+            );
+        }
+    }
+    await Promise.all(writes);
 }
+
 async function salvarConfigBiblioteca() {
     const email = document.getElementById('emailBiblioteca').value;
     cachedEmailBib = email;
     try {
         await db.collection('userData').doc(currentUser.uid).update({ emailBiblioteca: email });
     } catch (err) { console.error(err); }
+}
+
+// ==========================================
+// GRUPOS DE TRABALHO — contexto ativo
+// ==========================================
+async function switchGroupContext(val) {
+    currentGroupId = val;
+    localStorage.setItem('currentGroupId', val);
+    // Recarrega dados se necessário (novos membros de outro grupo podem ter ficado de fora)
+    await loadRelevantUserData();
+    atualizarBadgeContexto();
+    renderTimeline();
+    renderDisciplinas();
+    renderProficiencias();
+    renderDependencias();
+    // Repopula chips nos formulários (default checkbox pode mudar)
+    renderGroupChipSelectors();
+    const ctxLabel = currentGroupId === 'pessoal' ? 'Pessoal'
+        : currentGroupId === 'todos' ? 'Todos os grupos'
+        : (cachedGroups.find(g => g.id === currentGroupId)?.nome || 'Grupo');
+    showToast(`Visualizando: ${ctxLabel}`);
+}
+
+function popularSelectorGrupo() {
+    const sel = document.getElementById('headerGroupSelector');
+    if (!sel) return;
+    const isAdmin = currentUserProfile?.role === 'admin';
+    let opts = '<option value="pessoal">👤 Pessoal</option>';
+    cachedGroups.forEach(g => {
+        opts += `<option value="${escapeHtml(g.id)}">👥 ${escapeHtml(g.nome)}</option>`;
+    });
+    if (isAdmin) opts += '<option value="todos">🌐 Todos os grupos</option>';
+    sel.innerHTML = opts;
+    sel.value = currentGroupId;
+    // Só mostra o selector se há ao menos um grupo OU se é admin
+    sel.style.display = (cachedGroups.length > 0 || isAdmin) ? '' : 'none';
+}
+
+function atualizarBadgeContexto() {
+    const sel = document.getElementById('headerGroupSelector');
+    if (sel) sel.value = currentGroupId;
+}
+
+function renderGroupChipSelectors() {
+    const containers = [
+        { id: 'discGruposContainer', name: 'discGrupos' },
+        { id: 'profGruposContainer', name: 'profGrupos' },
+        { id: 'depGruposContainer',  name: 'depGrupos' }
+    ];
+    containers.forEach(({id, name}) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (cachedGroups.length === 0) {
+            el.innerHTML = '<span class="empty">Nenhum grupo de trabalho cadastrado. Os itens ficarão como pessoais.</span>';
+            return;
+        }
+        const defaultCheck = (currentGroupId !== 'pessoal' && currentGroupId !== 'todos') ? currentGroupId : null;
+        el.innerHTML = cachedGroups.map(g =>
+            `<label><input type="checkbox" name="${name}" value="${escapeHtml(g.id)}" ${g.id === defaultCheck ? 'checked' : ''}>${escapeHtml(g.nome)}</label>`
+        ).join('');
+    });
+}
+
+function getGruposSelecionados(name) {
+    return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
+}
+
+function popularGrupoChipsEdit(containerId, selectedIds) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (cachedGroups.length === 0) {
+        el.innerHTML = '<span class="empty">Nenhum grupo de trabalho disponível. Deixe em branco para manter como pessoal.</span>';
+        return;
+    }
+    const set = new Set(selectedIds || []);
+    el.innerHTML = cachedGroups.map(g =>
+        `<label><input type="checkbox" value="${escapeHtml(g.id)}" ${set.has(g.id) ? 'checked' : ''}>${escapeHtml(g.nome)}</label>`
+    ).join('');
+}
+
+function getGrupoChipsEdit(containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return [];
+    return Array.from(el.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+}
+
+// Modal rápido para editar apenas os grupos de um item já cadastrado
+function abrirModalEditarGrupos(tipo, id) {
+    let item = null, nomeItem = '';
+    if (tipo === 'disc')       { item = getDisciplinas().find(d => d.id === id); nomeItem = item?.nomeDisciplina || ''; }
+    else if (tipo === 'prof')  { item = getProficiencias().find(p => p.id === id); nomeItem = item?.nome || ''; }
+    else if (tipo === 'dep')   { item = getDependencias().find(d => d.id === id); nomeItem = item?.nome || ''; }
+    if (!item) return;
+    if (!canEditItem(item)) { showToast('Apenas o criador ou administrador pode alterar os grupos deste item.', true); return; }
+    if (cachedGroups.length === 0) { showToast('Nenhum grupo de trabalho cadastrado. Peça ao administrador para criar um grupo.', true); return; }
+    document.getElementById('modalEditarGruposTipo').value = tipo;
+    document.getElementById('modalEditarGruposItemId').value = id;
+    document.getElementById('modalEditarGruposItemNome').textContent = nomeItem;
+    popularGrupoChipsEdit('modalEditarGruposChips', item.groupIds || []);
+    document.getElementById('modalEditarGrupos').classList.add('active');
+}
+
+function fecharModalEditarGrupos() { document.getElementById('modalEditarGrupos').classList.remove('active'); }
+
+async function salvarEdicaoGruposItem() {
+    const tipo = document.getElementById('modalEditarGruposTipo').value;
+    const id = document.getElementById('modalEditarGruposItemId').value;
+    const novosGrupos = getGrupoChipsEdit('modalEditarGruposChips');
+    let arr, saveFn;
+    if (tipo === 'disc')      { arr = getDisciplinas();   saveFn = saveDisciplinas; }
+    else if (tipo === 'prof') { arr = getProficiencias(); saveFn = saveProficiencias; }
+    else if (tipo === 'dep')  { arr = getDependencias();  saveFn = saveDependencias; }
+    else return;
+    const idx = arr.findIndex(x => x.id === id);
+    if (idx === -1) return;
+    if (!canEditItem(arr[idx])) { showToast('Sem permissão para alterar os grupos deste item.', true); return; }
+    // Preserva criadoPor se faltar (item legado)
+    if (!arr[idx].criadoPor) {
+        arr[idx].criadoPor = arr[idx]._ownerId || currentUser.uid;
+        arr[idx].criadoPorNome = arr[idx].criadoPorNome || getUserName(arr[idx]._ownerId || currentUser.uid);
+    }
+    arr[idx] = { ...arr[idx], groupIds: novosGrupos };
+    await saveFn(arr);
+    fecharModalEditarGrupos();
+    renderDisciplinas(); renderProficiencias(); renderDependencias(); renderTimeline();
+    showToast('Grupos atualizados!');
 }
 
 async function marcarFeito(key) {
@@ -1792,11 +2281,13 @@ async function salvarProficiencia() {
         if (data) datas.push({ id: `${Date.now()}_${idx}`, data, horaInicio: inicio, horaFim: fim, tipoPagamento: tipo });
     });
     if (datas.length === 0) { showToast('Adicione pelo menos uma data.', true); return; }
-    const arr = getProficiencias();
-    arr.push({ id: Date.now().toString(), nome, datas });
-    await saveProficiencias(arr);
+    const groupIds = getGruposSelecionados('profGrupos');
+    const novo = { id: Date.now().toString(), nome, datas, criadoPor: currentUser.uid, criadoPorNome: currentUserProfile.nome, groupIds };
+    const ownerArr = [...(allUserData[currentUser.uid]?.proficiencias || []), novo];
+    await _writeField(currentUser.uid, 'proficiencias', ownerArr);
     document.getElementById('profNome').value = '';
     document.getElementById('profDatasContainer').innerHTML = '';
+    renderGroupChipSelectors();
     showToast('Prova de Proficiência cadastrada!');
     renderProficiencias(); renderTimeline();
 }
@@ -1816,11 +2307,20 @@ function renderProficiencias() {
             const horario = (d.horaInicio && d.horaFim) ? ` · ${d.horaInicio}–${d.horaFim}` : d.horaInicio ? ` · ${d.horaInicio}` : '';
             return `<div class="prof-data-item"><span>${formatDate(parseDate(d.data))}${horario}</span><span class="badge" style="${d.tipoPagamento==='paga'?'background:#fff3e0;color:#e65100;':'background:#e8f5e9;color:#2e7d32;'}">${d.tipoPagamento==='paga'?'Paga':'Gratuita'}</span></div>`;
         }).join('');
-        return `<div class="prof-card"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><h3>${escapeHtml(prof.nome)}</h3><div style="display:flex;gap:6px;"><button class="btn btn-primary btn-sm" onclick="editarProficiencia('${prof.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="excluirProficiencia('${prof.id}')">Excluir</button></div></div>${datasHtml}</div>`;
+        const criadorTag = (prof.criadoPor && prof.criadoPor !== currentUser.uid) ? `<span class="criador-tag">por ${escapeHtml(prof.criadoPorNome || getUserName(prof.criadoPor))}</span>` : '';
+        const gruposBadges = (prof.groupIds && prof.groupIds.length > 0) ? `<div class="groups-inline">${prof.groupIds.map(gid => { const g = cachedGroups.find(x => x.id === gid); return g ? `<span class="gi-badge">👥 ${escapeHtml(g.nome)}</span>` : ''; }).join('')}</div>` : '';
+        const podeEditar = canEditItem(prof);
+        const botoes = podeEditar
+            ? `<button class="btn btn-sm" style="background:#e8eaf6; color:#1a237e; border:1px solid #c5cae9; font-weight:600;" onclick="abrirModalEditarGrupos('prof','${prof.id}')">👥 Grupos</button><button class="btn btn-primary btn-sm" onclick="editarProficiencia('${prof.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="excluirProficiencia('${prof.id}')">Excluir</button>`
+            : `<span style="font-size:0.75rem; color:#999;">somente leitura</span>`;
+        return `<div class="prof-card"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><h3>${escapeHtml(prof.nome)}${criadorTag}</h3><div style="display:flex;gap:6px;">${botoes}</div></div>${datasHtml}${gruposBadges}</div>`;
     }).join('');
 }
 
 async function excluirProficiencia(id) {
+    const alvo = getProficiencias().find(p => p.id === id);
+    if (!alvo) return;
+    if (!canEditItem(alvo)) { showToast('Apenas o criador ou administrador pode excluir este item.', true); return; }
     if (!confirm('Excluir esta prova de proficiência e todas as suas datas?')) return;
     const arr = getProficiencias().filter(p => p.id !== id);
     const st = getStatus();
@@ -1847,15 +2347,18 @@ async function salvarDisciplina() {
     const nivel = document.getElementById('nivel').value;
     const cursos = nivel === 'Graduação' ? getCursosSelecionados('cursos') : [];
     if (nivel === 'Graduação' && cursos.length === 0) { showToast('Selecione pelo menos um curso!', true); return; }
-    const disc = { id: Date.now().toString(), nomeDisciplina:document.getElementById('nomeDisciplina').value, nomeProfessor:document.getElementById('nomeProfessor').value, emailProfessor:document.getElementById('emailProfessor').value, dataInicio:document.getElementById('dataInicio').value, periodo:document.getElementById('periodo').value, nivel, cursos, provas, trabalhos };
-    const arr = getDisciplinas(); arr.push(disc);
-    await saveDisciplinas(arr);
+    const groupIds = getGruposSelecionados('discGrupos');
+    const disc = { id: Date.now().toString(), nomeDisciplina:document.getElementById('nomeDisciplina').value, nomeProfessor:document.getElementById('nomeProfessor').value, emailProfessor:document.getElementById('emailProfessor').value, dataInicio:document.getElementById('dataInicio').value, periodo:document.getElementById('periodo').value, nivel, cursos, provas, trabalhos, criadoPor: currentUser.uid, criadoPorNome: currentUserProfile.nome, groupIds, _ownerId: currentUser.uid };
+    // Inserção direta sem passar pelo getter filtrado (para funcionar mesmo se o item não for visível no contexto atual)
+    const ownerArr = [...(allUserData[currentUser.uid]?.disciplinas || []), (() => { const c={...disc}; delete c._ownerId; return c; })()];
+    await _writeField(currentUser.uid, 'disciplinas', ownerArr);
     form.reset();
     document.getElementById('provasContainer').innerHTML = `<div class="prova-entry"><div class="form-group"><label>Nome da Prova</label><input type="text" class="prova-nome" value="Prova 1" required></div><div class="form-group"><label>Data da Prova</label><input type="date" class="prova-data" required></div><div class="form-group" style="max-width:100px;"><label>N° Cópias</label><input type="number" class="prova-copias" min="1" value="30" required></div><div class="form-group" style="max-width:140px;"><label>Prazo Correção (dias)</label><input type="number" class="prova-prazo-correcao" min="1" value="20" required></div><button type="button" class="btn-remove-prova" onclick="removerProva(this)" title="Remover">&times;</button></div>`;
     document.getElementById('trabalhosContainer').innerHTML = '';
     document.getElementById('cursosWrapper').classList.add('hidden');
     document.querySelectorAll('input[name="cursos"]').forEach(cb => cb.checked = false);
     provaCount = 1;
+    renderGroupChipSelectors();
     showToast('Disciplina cadastrada com sucesso!');
     switchTab('disciplinas');
 }
@@ -1880,11 +2383,20 @@ function renderDisciplinas() {
         const provasStr = d.provas.map(p => `${p.nome}: ${formatDate(parseDate(p.data))}`).join(' | ');
         const trabStr = (d.trabalhos||[]).map(t => `${t.nome}: ${formatDate(parseDate(t.data))}`).join(' | ');
         const infoExtra = [d.nivel||'', d.periodo?`${d.periodo} Período`:'', (d.cursos&&d.cursos.length>0)?d.cursos.join(', '):''].filter(Boolean).join(' · ');
-        return `<div class="disc-card"><div class="disc-info"><h3>${escapeHtml(d.nomeDisciplina)}</h3>${infoExtra?`<p style="font-size:0.8rem; color:#1a237e; font-weight:600;">${escapeHtml(infoExtra)}</p>`:''}<p>${escapeHtml(d.nomeProfessor)} — ${escapeHtml(d.emailProfessor)}</p><p>Início: ${formatDate(parseDate(d.dataInicio))} | ${provasStr}${trabStr?' | '+trabStr:''}</p></div><div class="disc-actions"><button class="btn btn-primary btn-sm" onclick="editarDisciplina('${d.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="excluirDisciplina('${d.id}')">Excluir</button></div></div>`;
+        const criadorTag = (d.criadoPor && d.criadoPor !== currentUser.uid) ? `<span class="criador-tag">por ${escapeHtml(d.criadoPorNome || getUserName(d.criadoPor))}</span>` : '';
+        const gruposBadges = (d.groupIds && d.groupIds.length > 0) ? `<div class="groups-inline">${d.groupIds.map(gid => { const g = cachedGroups.find(x => x.id === gid); return g ? `<span class="gi-badge">👥 ${escapeHtml(g.nome)}</span>` : ''; }).join('')}</div>` : '';
+        const podeEditar = canEditItem(d);
+        const botoes = podeEditar
+            ? `<button class="btn btn-sm" style="background:#e8eaf6; color:#1a237e; border:1px solid #c5cae9; font-weight:600;" onclick="abrirModalEditarGrupos('disc','${d.id}')">👥 Grupos</button><button class="btn btn-primary btn-sm" onclick="editarDisciplina('${d.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="excluirDisciplina('${d.id}')">Excluir</button>`
+            : `<span style="font-size:0.75rem; color:#999;">somente leitura</span>`;
+        return `<div class="disc-card"><div class="disc-info"><h3>${escapeHtml(d.nomeDisciplina)}${criadorTag}</h3>${infoExtra?`<p style="font-size:0.8rem; color:#1a237e; font-weight:600;">${escapeHtml(infoExtra)}</p>`:''}<p>${escapeHtml(d.nomeProfessor)} — ${escapeHtml(d.emailProfessor)}</p><p>Início: ${formatDate(parseDate(d.dataInicio))} | ${provasStr}${trabStr?' | '+trabStr:''}</p>${gruposBadges}</div><div class="disc-actions">${botoes}</div></div>`;
     }).join('');
 }
 
 async function excluirDisciplina(id) {
+    const alvo = getDisciplinas().find(d => d.id === id);
+    if (!alvo) return;
+    if (!canEditItem(alvo)) { showToast('Apenas o criador ou administrador pode excluir este item.', true); return; }
     if (!confirm('Tem certeza que deseja excluir esta disciplina?')) return;
     const arr = getDisciplinas().filter(d => d.id !== id);
     const st = getStatus(); Object.keys(st).forEach(k => { if (k.startsWith(id+'_')) delete st[k]; });
@@ -1896,6 +2408,8 @@ async function excluirDisciplina(id) {
 function editarDisciplina(id) {
     const disc = getDisciplinas().find(d => d.id === id);
     if (!disc) return;
+    if (!canEditItem(disc)) { showToast('Apenas o criador ou administrador pode editar este item.', true); return; }
+    popularGrupoChipsEdit('editDiscGruposContainer', disc.groupIds || []);
     document.getElementById('editId').value = id;
     document.getElementById('editNomeDisciplina').value = disc.nomeDisciplina;
     document.getElementById('editNomeProfessor').value = disc.nomeProfessor;
@@ -1915,12 +2429,14 @@ async function salvarEdicao(e) {
     const id = document.getElementById('editId').value;
     const arr = getDisciplinas(); const idx = arr.findIndex(d => d.id === id);
     if (idx === -1) return;
+    if (!canEditItem(arr[idx])) { showToast('Apenas o criador ou administrador pode editar este item.', true); return; }
     const provas = []; document.querySelectorAll('#editProvasContainer .prova-entry').forEach(el => { provas.push({ nome:el.querySelector('.prova-nome').value, data:el.querySelector('.prova-data').value, copias:parseInt(el.querySelector('.prova-copias').value)||30, prazoCorrecao:parseInt(el.querySelector('.prova-prazo-correcao').value)||20 }); });
     const trabalhos = []; document.querySelectorAll('#editTrabalhosContainer .trabalho-entry').forEach(el => { trabalhos.push({ nome:el.querySelector('.trabalho-nome').value, data:el.querySelector('.trabalho-data').value, prazoCorrecao:parseInt(el.querySelector('.trabalho-prazo-correcao').value)||20 }); });
     const editNivel = document.getElementById('editNivel').value;
     const editCursos = editNivel === 'Graduação' ? getCursosSelecionados('editCursos') : [];
     if (editNivel === 'Graduação' && editCursos.length === 0) { showToast('Selecione pelo menos um curso!', true); return; }
-    arr[idx] = { ...arr[idx], nomeDisciplina:document.getElementById('editNomeDisciplina').value, nomeProfessor:document.getElementById('editNomeProfessor').value, emailProfessor:document.getElementById('editEmailProfessor').value, dataInicio:document.getElementById('editDataInicio').value, periodo:document.getElementById('editPeriodo').value, nivel:editNivel, cursos:editCursos, provas, trabalhos };
+    const editGroupIds = getGrupoChipsEdit('editDiscGruposContainer');
+    arr[idx] = { ...arr[idx], nomeDisciplina:document.getElementById('editNomeDisciplina').value, nomeProfessor:document.getElementById('editNomeProfessor').value, emailProfessor:document.getElementById('editEmailProfessor').value, dataInicio:document.getElementById('editDataInicio').value, periodo:document.getElementById('editPeriodo').value, nivel:editNivel, cursos:editCursos, provas, trabalhos, groupIds: editGroupIds };
     await saveDisciplinas(arr);
     fecharModalEditar(); renderDisciplinas(); renderTimeline();
     showToast('Disciplina atualizada!');
@@ -2313,10 +2829,12 @@ async function salvarDependencia() {
         if (n && p) disciplinas.push({ nome: n, nomeProfessor: p, emailProfessor: e });
     });
     if (disciplinas.length === 0) { showToast('Adicione pelo menos uma disciplina.', true); return; }
-    const arr = getDependencias();
-    arr.push({ id: Date.now().toString(), nome, data, modalidade, horaInicio, horaFim, diasAntecedencia, disciplinas });
-    await saveDependencias(arr);
+    const groupIds = getGruposSelecionados('depGrupos');
+    const novo = { id: Date.now().toString(), nome, data, modalidade, horaInicio, horaFim, diasAntecedencia, disciplinas, criadoPor: currentUser.uid, criadoPorNome: currentUserProfile.nome, groupIds };
+    const ownerArr = [...(allUserData[currentUser.uid]?.dependencias || []), novo];
+    await _writeField(currentUser.uid, 'dependencias', ownerArr);
     limparFormDep();
+    renderGroupChipSelectors();
     showToast('Prova de Dependência cadastrada!');
     renderDependencias(); renderTimeline();
 }
@@ -2342,21 +2860,28 @@ function renderDependencias() {
         const discsHtml = (dep.disciplinas||[]).map(d =>
             `<div class="dep-disc-item"><span>${escapeHtml(d.nome)}</span><span style="color:#666; font-size:0.8rem;">${escapeHtml(d.nomeProfessor)}${d.copias ? ` &nbsp;·&nbsp; ${d.copias} cópias` : ''}</span></div>`
         ).join('');
+        const criadorTag = (dep.criadoPor && dep.criadoPor !== currentUser.uid) ? `<span class="criador-tag">por ${escapeHtml(dep.criadoPorNome || getUserName(dep.criadoPor))}</span>` : '';
+        const gruposBadges = (dep.groupIds && dep.groupIds.length > 0) ? `<div class="groups-inline">${dep.groupIds.map(gid => { const g = cachedGroups.find(x => x.id === gid); return g ? `<span class="gi-badge">👥 ${escapeHtml(g.nome)}</span>` : ''; }).join('')}</div>` : '';
+        const podeEditar = canEditItem(dep);
+        const botoes = podeEditar
+            ? `<button class="btn btn-sm" style="background:#e8eaf6; color:#1a237e; border:1px solid #c5cae9; font-weight:600;" onclick="abrirModalEditarGrupos('dep','${dep.id}')">👥 Grupos</button><button class="btn btn-primary btn-sm" onclick="editarDependencia('${dep.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="excluirDependencia('${dep.id}')">Excluir</button>`
+            : `<span style="font-size:0.75rem; color:#999;">somente leitura</span>`;
         return `<div class="dep-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <h3>${escapeHtml(dep.nome)}</h3>
-                <div style="display:flex; gap:6px;">
-                    <button class="btn btn-primary btn-sm" onclick="editarDependencia('${dep.id}')">Editar</button>
-                    <button class="btn btn-danger btn-sm" onclick="excluirDependencia('${dep.id}')">Excluir</button>
-                </div>
+                <h3>${escapeHtml(dep.nome)}${criadorTag}</h3>
+                <div style="display:flex; gap:6px;">${botoes}</div>
             </div>
             <div style="font-size:0.83rem; color:#555; margin-bottom:6px;">${formatDate(parseDate(dep.data))}${horario} · <strong>${modalLabel}</strong> · Elaboração ${dep.diasAntecedencia||15} dias antes</div>
             ${discsHtml}
+            ${gruposBadges}
         </div>`;
     }).join('');
 }
 
 async function excluirDependencia(id) {
+    const alvo = getDependencias().find(d => d.id === id);
+    if (!alvo) return;
+    if (!canEditItem(alvo)) { showToast('Apenas o criador ou administrador pode excluir este item.', true); return; }
     if (!confirm('Excluir esta prova de dependência e todas as suas disciplinas?')) return;
     const arr = getDependencias().filter(d => d.id !== id);
     const st = getStatus();
@@ -2372,6 +2897,8 @@ async function excluirDependencia(id) {
 function editarProficiencia(id) {
     const prof = getProficiencias().find(p => p.id === id);
     if (!prof) return;
+    if (!canEditItem(prof)) { showToast('Apenas o criador ou administrador pode editar este item.', true); return; }
+    popularGrupoChipsEdit('editProfGruposContainer', prof.groupIds || []);
     document.getElementById('editProfId').value = id;
     document.getElementById('editProfNome').value = prof.nome;
     const container = document.getElementById('editProfDatasContainer');
@@ -2413,10 +2940,12 @@ async function salvarEdicaoProf() {
     const arr = getProficiencias();
     const idx = arr.findIndex(p => p.id === id);
     if (idx === -1) return;
+    if (!canEditItem(arr[idx])) { showToast('Apenas o criador ou administrador pode editar este item.', true); return; }
     // Limpar status das datas antigas
     const st = getStatus();
     Object.keys(st).forEach(k => { if (k.startsWith(id+'_')) delete st[k]; });
-    arr[idx] = { ...arr[idx], nome, datas };
+    const editGroupIds = getGrupoChipsEdit('editProfGruposContainer');
+    arr[idx] = { ...arr[idx], nome, datas, groupIds: editGroupIds };
     await saveProficiencias(arr); await saveStatus(st);
     fecharModalEditarProf();
     renderProficiencias(); renderTimeline();
@@ -2431,6 +2960,8 @@ function fecharModalEditarProf() { document.getElementById('modalEditarProf').cl
 function editarDependencia(id) {
     const dep = getDependencias().find(d => d.id === id);
     if (!dep) return;
+    if (!canEditItem(dep)) { showToast('Apenas o criador ou administrador pode editar este item.', true); return; }
+    popularGrupoChipsEdit('editDepGruposContainer', dep.groupIds || []);
     document.getElementById('editDepId').value = id;
     document.getElementById('editDepNome').value = dep.nome;
     document.getElementById('editDepData').value = dep.data;
@@ -2485,10 +3016,12 @@ async function salvarEdicaoDep() {
     const arr = getDependencias();
     const idx = arr.findIndex(d => d.id === id);
     if (idx === -1) return;
+    if (!canEditItem(arr[idx])) { showToast('Apenas o criador ou administrador pode editar este item.', true); return; }
     // Limpar status antigos desta dependência
     const st = getStatus();
     Object.keys(st).forEach(k => { if (k.startsWith(id+'_')) delete st[k]; });
-    arr[idx] = { ...arr[idx], nome, data, modalidade, horaInicio, horaFim, diasAntecedencia, disciplinas };
+    const editGroupIds = getGrupoChipsEdit('editDepGruposContainer');
+    arr[idx] = { ...arr[idx], nome, data, modalidade, horaInicio, horaFim, diasAntecedencia, disciplinas, groupIds: editGroupIds };
     await saveDependencias(arr); await saveStatus(st);
     fecharModalEditarDep();
     renderDependencias(); renderTimeline();
@@ -2645,7 +3178,7 @@ function switchTab(name) {
     if (name==='timeline') renderTimeline();
     if (name==='proficiencia') renderProficiencias();
     if (name==='dependencia') renderDependencias();
-    if (name==='admin' && currentUserProfile?.role==='admin') renderAdminUsuarios();
+    if (name==='admin' && currentUserProfile?.role==='admin') { renderAdminUsuarios(); renderAdminGrupos(); }
     sessionStorage.setItem('activeTab', name);
 
     // Close sidebar on mobile
