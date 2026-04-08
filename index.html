@@ -416,6 +416,10 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
             Dependência
         </div>
+        <div class="sidebar-nav-item" onclick="switchTab('seminarios')" data-tab="seminarios">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            Seminários
+        </div>
         <div class="sidebar-separator"></div>
         <div class="sidebar-nav-item" id="sidebarBtnAdmin" onclick="switchTab('admin')" data-tab="admin" style="display:none;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -602,6 +606,43 @@
         </div>
     </div>
 
+    <!-- TAB: Seminários -->
+    <div id="tab-seminarios" class="tab-content">
+        <div class="card">
+            <h2>Cadastrar Seminário</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Data do Seminário</label>
+                    <input type="date" id="semData">
+                </div>
+                <div class="form-group">
+                    <label>Horário</label>
+                    <input type="time" id="semHorario">
+                </div>
+                <div class="form-group full">
+                    <label>Nome do(a) Aluno(a)</label>
+                    <input type="text" id="semNomeAluno" placeholder="Nome completo do(a) aluno(a)">
+                </div>
+                <div class="form-group full">
+                    <label>E-mail do(a) Aluno(a)</label>
+                    <input type="email" id="semEmailAluno" placeholder="aluno@email.com">
+                </div>
+            </div>
+            <div class="group-chip-select-wrapper">
+                <label class="section-label">Vincular a Grupo(s) de Trabalho</label>
+                <div id="semGruposContainer" class="group-chip-select"></div>
+            </div>
+            <div class="btn-group" style="margin-top:16px;">
+                <button type="button" class="btn btn-primary" onclick="salvarSeminario()">Salvar Seminário</button>
+                <button type="button" class="btn btn-secondary" onclick="limparFormSem()">Limpar</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Seminários Cadastrados</h2>
+            <div id="listaSeminarios"></div>
+        </div>
+    </div>
+
     <!-- TAB: Tarefas -->
     <div id="tab-timeline" class="tab-content active">
         <div class="card">
@@ -645,6 +686,7 @@
                 <span class="chip chip-tipo chip-on" data-tipo="disciplina" onclick="toggleChipTipo(this)"><span class="chip-box">✓</span> Disciplina</span>
                 <span class="chip chip-tipo chip-on" data-tipo="proficiencia" onclick="toggleChipTipo(this)"><span class="chip-box">✓</span> Proficiência</span>
                 <span class="chip chip-tipo chip-on" data-tipo="dependencia" onclick="toggleChipTipo(this)"><span class="chip-box">✓</span> Dependência</span>
+                <span class="chip chip-tipo chip-on" data-tipo="seminario" onclick="toggleChipTipo(this)"><span class="chip-box">✓</span> Seminário</span>
             </div>
             <div id="tarefasContainer"></div>
         </div>
@@ -909,6 +951,28 @@
     </div>
 </div>
 
+<!-- Modal Editar Seminário -->
+<div class="modal-overlay" id="modalEditarSem">
+    <div class="modal">
+        <h3>Editar Seminário</h3>
+        <input type="hidden" id="editSemId">
+        <div class="form-grid" style="margin-bottom:14px;">
+            <div class="form-group"><label>Data do Seminário</label><input type="date" id="editSemData"></div>
+            <div class="form-group"><label>Horário</label><input type="time" id="editSemHorario"></div>
+            <div class="form-group full"><label>Nome do(a) Aluno(a)</label><input type="text" id="editSemNomeAluno"></div>
+            <div class="form-group full"><label>E-mail do(a) Aluno(a)</label><input type="email" id="editSemEmailAluno"></div>
+        </div>
+        <div class="group-chip-select-wrapper">
+            <label class="section-label">Vincular a Grupo(s) de Trabalho</label>
+            <div id="editSemGruposContainer" class="group-chip-select"></div>
+        </div>
+        <div class="modal-actions" style="margin-top:16px;">
+            <button class="btn btn-secondary btn-sm" onclick="fecharModalEditarSem()">Cancelar</button>
+            <button class="btn btn-primary btn-sm" onclick="salvarEdicaoSem()">Salvar Alterações</button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Editar Grupos (atalho) -->
 <div class="modal-overlay" id="modalEditarGrupos">
     <div class="modal" style="max-width:520px;">
@@ -1121,7 +1185,7 @@ async function criarPrimeiroAdmin() {
             nome, email, role: 'admin', mustChangePassword: false,
             criadoEm: firebase.firestore.FieldValue.serverTimestamp()
         });
-        await db.collection('userData').doc(uid).set({ disciplinas: [], proficiencias: [], dependencias: [], emailStatus: {}, emailBiblioteca: '' });
+        await db.collection('userData').doc(uid).set({ disciplinas: [], proficiencias: [], dependencias: [], seminarios: [], emailStatus: {}, emailBiblioteca: '' });
         await db.collection('_config').doc('setup').set({ initialized: true, criadoEm: firebase.firestore.FieldValue.serverTimestamp() });
         // onAuthStateChanged will handle the rest
     } catch (err) {
@@ -1196,7 +1260,7 @@ async function loadUserData() {
         // 1. Garantir que o doc do usuário exista
         const doc = await firestoreGet(db.collection('userData').doc(currentUser.uid));
         if (!doc.exists) {
-            await db.collection('userData').doc(currentUser.uid).set({ disciplinas: [], proficiencias: [], dependencias: [], emailStatus: {}, emailBiblioteca: '' });
+            await db.collection('userData').doc(currentUser.uid).set({ disciplinas: [], proficiencias: [], dependencias: [], seminarios: [], emailStatus: {}, emailBiblioteca: '' });
         }
         cachedEmailBib = doc.exists ? (doc.data().emailBiblioteca || '') : '';
 
@@ -1260,13 +1324,14 @@ async function loadRelevantUserData() {
                     disciplinas: data.disciplinas || [],
                     proficiencias: data.proficiencias || [],
                     dependencias: data.dependencias || [],
+                    seminarios: data.seminarios || [],
                     emailStatus: data.emailStatus || {}
                 };
             } else {
-                allUserData[uid] = { disciplinas: [], proficiencias: [], dependencias: [], emailStatus: {} };
+                allUserData[uid] = { disciplinas: [], proficiencias: [], dependencias: [], seminarios: [], emailStatus: {} };
             }
         } catch (e) {
-            allUserData[uid] = { disciplinas: [], proficiencias: [], dependencias: [], emailStatus: {} };
+            allUserData[uid] = { disciplinas: [], proficiencias: [], dependencias: [], seminarios: [], emailStatus: {} };
         }
     });
     await Promise.all(promises);
@@ -1315,7 +1380,7 @@ function iniciarApp() {
     // Inicializa seletor de grupo e chips nos formulários
     popularSelectorGrupo();
     renderGroupChipSelectors();
-    const abas = ['disciplinas', 'proficiencia', 'dependencia', 'timeline', 'perfil'];
+    const abas = ['disciplinas', 'proficiencia', 'dependencia', 'seminarios', 'timeline', 'perfil'];
     if (currentUserProfile.role === 'admin') abas.push('admin');
     const abaSalva = sessionStorage.getItem('activeTab');
     switchTab(abas.includes(abaSalva) ? abaSalva : 'timeline');
@@ -1345,7 +1410,7 @@ async function adminCriarUsuario() {
             nome, email, role: 'convidado', mustChangePassword: true,
             criadoEm: firebase.firestore.FieldValue.serverTimestamp(), criadoPor: currentUser.uid
         });
-        await db.collection('userData').doc(uid).set({ disciplinas: [], proficiencias: [], dependencias: [], emailStatus: {}, emailBiblioteca: '' });
+        await db.collection('userData').doc(uid).set({ disciplinas: [], proficiencias: [], dependencias: [], seminarios: [], emailStatus: {}, emailBiblioteca: '' });
         await secondaryAuth.signOut();
 
         hideLoading();
@@ -1487,7 +1552,7 @@ async function excluirGrupoTrabalho(groupId, nome) {
         const writes = [];
         for (const [uid, data] of Object.entries(allUserData)) {
             let mudou = false;
-            ['disciplinas', 'proficiencias', 'dependencias'].forEach(field => {
+            ['disciplinas', 'proficiencias', 'dependencias', 'seminarios'].forEach(field => {
                 (data[field] || []).forEach(item => {
                     if (Array.isArray(item.groupIds) && item.groupIds.includes(groupId)) {
                         item.groupIds = item.groupIds.filter(g => g !== groupId);
@@ -1499,7 +1564,8 @@ async function excluirGrupoTrabalho(groupId, nome) {
                 writes.push(db.collection('userData').doc(uid).update({
                     disciplinas: data.disciplinas || [],
                     proficiencias: data.proficiencias || [],
-                    dependencias: data.dependencias || []
+                    dependencias: data.dependencias || [],
+                    seminarios: data.seminarios || []
                 }));
             }
         }
@@ -1618,6 +1684,7 @@ function _getAggregated(field) {
 function getDisciplinas() { return _getAggregated('disciplinas'); }
 function getProficiencias() { return _getAggregated('proficiencias'); }
 function getDependencias() { return _getAggregated('dependencias'); }
+function getSeminarios()  { return _getAggregated('seminarios'); }
 function getStatus() {
     // Status agregado: combina todos os emailStatus dos donos relevantes
     const merged = {};
@@ -1635,13 +1702,14 @@ function _findOwnerByKey(key) {
         if ((data.disciplinas || []).some(d => d.id === itemId)) return uid;
         if ((data.proficiencias || []).some(p => p.id === itemId)) return uid;
         if ((data.dependencias || []).some(d => d.id === itemId)) return uid;
+        if ((data.seminarios || []).some(s => s.id === itemId)) return uid;
     }
     return currentUser.uid;
 }
 
 // Persiste o array completo de um field de um único usuário
 async function _writeField(uid, field, arr) {
-    allUserData[uid] = allUserData[uid] || { disciplinas: [], proficiencias: [], dependencias: [], emailStatus: {} };
+    allUserData[uid] = allUserData[uid] || { disciplinas: [], proficiencias: [], dependencias: [], seminarios: [], emailStatus: {} };
     allUserData[uid][field] = arr;
     try { await db.collection('userData').doc(uid).update({ [field]: arr }); }
     catch (err) { showToast('Erro ao salvar. Verifique a conexão.', true); console.error(err); }
@@ -1674,6 +1742,7 @@ async function _saveAggregated(field, arr) {
 async function saveDisciplinas(arr)   { await _saveAggregated('disciplinas', arr); }
 async function saveProficiencias(arr) { await _saveAggregated('proficiencias', arr); }
 async function saveDependencias(arr)  { await _saveAggregated('dependencias', arr); }
+async function saveSeminarios(arr)    { await _saveAggregated('seminarios', arr); }
 
 async function saveStatus(obj) {
     // Recebe o status agregado. Precisamos dividir por owner.
@@ -1692,7 +1761,7 @@ async function saveStatus(obj) {
         const old = JSON.stringify((allUserData[uid] && allUserData[uid].emailStatus) || {});
         const cur = JSON.stringify(st);
         if (old !== cur) {
-            allUserData[uid] = allUserData[uid] || { disciplinas: [], proficiencias: [], dependencias: [], emailStatus: {} };
+            allUserData[uid] = allUserData[uid] || { disciplinas: [], proficiencias: [], dependencias: [], seminarios: [], emailStatus: {} };
             allUserData[uid].emailStatus = st;
             writes.push(
                 db.collection('userData').doc(uid).update({ emailStatus: st }).catch(e => console.error(e))
@@ -1723,6 +1792,7 @@ async function switchGroupContext(val) {
     renderDisciplinas();
     renderProficiencias();
     renderDependencias();
+    renderSeminarios();
     // Repopula chips nos formulários (default checkbox pode mudar)
     renderGroupChipSelectors();
     const ctxLabel = currentGroupId === 'pessoal' ? 'Pessoal'
@@ -1755,7 +1825,8 @@ function renderGroupChipSelectors() {
     const containers = [
         { id: 'discGruposContainer', name: 'discGrupos' },
         { id: 'profGruposContainer', name: 'profGrupos' },
-        { id: 'depGruposContainer',  name: 'depGrupos' }
+        { id: 'depGruposContainer',  name: 'depGrupos' },
+        { id: 'semGruposContainer',  name: 'semGrupos' }
     ];
     containers.forEach(({id, name}) => {
         const el = document.getElementById(id);
@@ -1800,6 +1871,7 @@ function abrirModalEditarGrupos(tipo, id) {
     if (tipo === 'disc')       { item = getDisciplinas().find(d => d.id === id); nomeItem = item?.nomeDisciplina || ''; }
     else if (tipo === 'prof')  { item = getProficiencias().find(p => p.id === id); nomeItem = item?.nome || ''; }
     else if (tipo === 'dep')   { item = getDependencias().find(d => d.id === id); nomeItem = item?.nome || ''; }
+    else if (tipo === 'sem')   { item = getSeminarios().find(s => s.id === id); nomeItem = item ? `Seminário – ${item.nomeAluno}` : ''; }
     if (!item) return;
     if (!canEditItem(item)) { showToast('Apenas o criador ou administrador pode alterar os grupos deste item.', true); return; }
     if (cachedGroups.length === 0) { showToast('Nenhum grupo de trabalho cadastrado. Peça ao administrador para criar um grupo.', true); return; }
@@ -1820,6 +1892,7 @@ async function salvarEdicaoGruposItem() {
     if (tipo === 'disc')      { arr = getDisciplinas();   saveFn = saveDisciplinas; }
     else if (tipo === 'prof') { arr = getProficiencias(); saveFn = saveProficiencias; }
     else if (tipo === 'dep')  { arr = getDependencias();  saveFn = saveDependencias; }
+    else if (tipo === 'sem')  { arr = getSeminarios();    saveFn = saveSeminarios; }
     else return;
     const idx = arr.findIndex(x => x.id === id);
     if (idx === -1) return;
@@ -1832,7 +1905,7 @@ async function salvarEdicaoGruposItem() {
     arr[idx] = { ...arr[idx], groupIds: novosGrupos };
     await saveFn(arr);
     fecharModalEditarGrupos();
-    renderDisciplinas(); renderProficiencias(); renderDependencias(); renderTimeline();
+    renderDisciplinas(); renderProficiencias(); renderDependencias(); renderSeminarios(); renderTimeline();
     showToast('Grupos atualizados!');
 }
 
@@ -2456,7 +2529,7 @@ function calcSituacao(pendentes, hoje) {
 }
 
 function renderTimeline() {
-    const discs = getDisciplinas(), profs = getProficiencias(), deps = getDependencias(), status = getStatus();
+    const discs = getDisciplinas(), profs = getProficiencias(), deps = getDependencias(), sems = getSeminarios(), status = getStatus();
     const container = document.getElementById('tarefasContainer');
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     const filtroTexto = (document.getElementById('filtroTarefaDisc')?.value||'').toLowerCase();
@@ -2474,7 +2547,7 @@ function renderTimeline() {
             ordenadas.map(d => `<option value="${escapeHtml(d.id)}" ${d.id===atual?'selected':''}>${escapeHtml(d.nomeDisciplina)}</option>`).join('');
     }
 
-    if (discs.length === 0 && profs.length === 0 && deps.length === 0) {
+    if (discs.length === 0 && profs.length === 0 && deps.length === 0 && sems.length === 0) {
         container.innerHTML = '<div class="empty-state"><p>Nenhuma disciplina cadastrada</p><small>Clique em "+ Nova Disciplina" para começar</small></div>';
         return;
     }
@@ -2509,6 +2582,21 @@ function renderTimeline() {
                 const proxData = pendentes.length > 0 ? pendentes[0].dataEmail : null;
                 items.push({ type: 'prof', prof, dataItem, di, eventos, pendentes, concluidos, situacao, proxData, nome: prof.nome });
             });
+        });
+    }
+
+    if (!filtroDisc2 && tiposAtivos.has('seminario')) {
+        sems.forEach(sem => {
+            const nomeLower = (sem.nomeAluno||'').toLowerCase();
+            if (filtroTexto && !nomeLower.includes(filtroTexto) && !('seminário').includes(filtroTexto)) return;
+            if (!sem.data) return;
+            const eventos = gerarEventosSeminario(sem);
+            const pendentes = eventos.filter(ev => !status[ev.key]);
+            const concluidos = eventos.filter(ev => !!status[ev.key]);
+            const situacao = calcSituacao(pendentes, hoje);
+            if (!chipsAtivos.has(situacao)) return;
+            const proxData = pendentes.length > 0 ? pendentes[0].dataEmail : null;
+            items.push({ type: 'sem', sem, eventos, pendentes, concluidos, situacao, proxData, nome: `Seminário – ${sem.nomeAluno}` });
         });
     }
 
@@ -2636,6 +2724,50 @@ function renderTimeline() {
                         ${concluidos.length > 0 ? `<button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerDependencia('${dep.id}',${discIdx})">↩ Desfazer</button>` : ''}
                     </div>
                     <button class="btn btn-secondary btn-sm" style="flex-shrink:0;" onclick="verEtapasDependencia('${dep.id}',${discIdx})">Ver Etapas</button>
+                </div>
+                <div class="task-progress-bar"><div class="task-progress-fill" style="width:${pct}%;"></div></div>
+            </div>`;
+        }
+
+        // Seminário
+        if (item.type === 'sem') {
+            const sem = item.sem;
+            const dataSemFmt = formatDate(parseDate(sem.data));
+            const horarioStr = sem.horario ? ` · ${sem.horario}` : '';
+            if (isConcluida) {
+                return `<div class="task-card done-card">
+                    <div class="task-card-header">
+                        <div><h3>Seminário – ${escapeHtml(sem.nomeAluno)}</h3><p class="task-professor">${dataSemFmt}${horarioStr}</p></div>
+                        <span class="badge badge-done">Concluída</span>
+                    </div>
+                    <div class="task-done-msg">✓ Todas as ${totalEtapas} etapas concluídas!</div>
+                    <div class="task-progress-bar"><div class="task-progress-fill" style="width:100%;"></div></div>
+                    <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerSeminario('${sem.id}')">↩ Desfazer última etapa</button>
+                        <button class="btn btn-secondary btn-sm" onclick="verEtapasSeminario('${sem.id}')">Ver Etapas</button>
+                    </div>
+                </div>`;
+            }
+            const proxima = pendentes[0];
+            const etapaNum = concluidos.length + 1;
+            return `<div class="task-card ${cardClassMap[situacao]}">
+                <div class="task-card-header">
+                    <div><h3>Seminário – ${escapeHtml(sem.nomeAluno)}</h3><p class="task-professor">${dataSemFmt}${horarioStr}</p></div>
+                    <span class="badge ${badgeMap[situacao]}">${labelMap[situacao]}</span>
+                </div>
+                <div class="task-current">
+                    <div class="task-step">Etapa ${etapaNum} de ${totalEtapas} &nbsp;·&nbsp; ${pct}% concluído</div>
+                    <div class="task-date">${formatDate(proxima.dataEmail)}</div>
+                    <div class="task-title">${escapeHtml(proxima.titulo)}</div>
+                    <div class="task-desc">${escapeHtml(proxima.descricao)}</div>
+                </div>
+                <div class="task-actions" style="justify-content:space-between; align-items:flex-end;">
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn btn-primary btn-sm" onclick='verEmail(${JSON.stringify(proxima.key)})'>✉ Ver E-mail</button>
+                        <button class="btn btn-success btn-sm" onclick="marcarFeito('${proxima.key}')">✓ Marcar como Feito</button>
+                        ${concluidos.length > 0 ? `<button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerSeminario('${sem.id}')">↩ Desfazer</button>` : ''}
+                    </div>
+                    <button class="btn btn-secondary btn-sm" style="flex-shrink:0;" onclick="verEtapasSeminario('${sem.id}')">Ver Etapas</button>
                 </div>
                 <div class="task-progress-bar"><div class="task-progress-fill" style="width:${pct}%;"></div></div>
             </div>`;
@@ -3060,11 +3192,18 @@ function verEmail(key) {
             });
         });
     }
+    if (!eventoAlvo) {
+        getSeminarios().forEach(sem => {
+            gerarEventosSeminario(sem).forEach(ev => { if (ev.key===key) eventoAlvo=ev; });
+        });
+    }
     if (!eventoAlvo) return;
     const tiposDep = ['dep_elaboracao','dep_verif_elaboracao','dep_quantitativo','dep_impressao','dep_correcao','dep_nota'];
+    const tiposSem = ['sem_solic_titulo','sem_verif_titulo','sem_solic_artigo','sem_verif_artigo'];
     const email = (eventoAlvo.tipo==='prof_comunicado'||eventoAlvo.tipo==='prof_lembrete')
         ? gerarEmailProficiencia(eventoAlvo)
         : tiposDep.includes(eventoAlvo.tipo) ? gerarEmailDependencia(eventoAlvo)
+        : tiposSem.includes(eventoAlvo.tipo) ? gerarEmailSeminario(eventoAlvo)
         : gerarEmail(eventoAlvo);
     currentEmail = email;
     document.getElementById('modalTitulo').textContent = eventoAlvo.titulo;
@@ -3097,6 +3236,246 @@ function abrirMailto() {
     // mailto é texto simples — remove os asteriscos mas mantém o conteúdo
     const bodyText = currentEmail.corpo.replace(/\*(.*?)\*/g, '$1');
     window.open(`mailto:${currentEmail.para}?subject=${encodeURIComponent(currentEmail.assunto)}&body=${encodeURIComponent(bodyText)}`);
+}
+
+// ==========================================
+// SEMINÁRIOS
+// ==========================================
+function isFeriadoOuDomingo(date) {
+    return date.getDay() === 0 || isFeriado(date);
+}
+function ajustarAnteriorSDF(date) {
+    const d = new Date(date);
+    while (isFeriadoOuDomingo(d)) d.setDate(d.getDate() - 1);
+    return d;
+}
+function ajustarPosteriorSDF(date) {
+    const d = new Date(date);
+    while (isFeriadoOuDomingo(d)) d.setDate(d.getDate() + 1);
+    return d;
+}
+
+function gerarEventosSeminario(sem) {
+    const dataSem = parseDate(sem.data);
+    const id = sem.id;
+
+    // Etapa 1: Solicitar Título e Resumo
+    const d27 = new Date(dataSem); d27.setDate(d27.getDate() - 27);
+    const dataSolicTitulo = ajustarAnteriorSDF(d27);
+    const d20 = new Date(dataSem); d20.setDate(d20.getDate() - 20);
+    const prazoTitulo = ajustarPosteriorSDF(d20);
+
+    // Etapa 2: Verificar Envio do Título e Resumo (1 dia útil após o prazo)
+    const dVerifTit = new Date(prazoTitulo); dVerifTit.setDate(dVerifTit.getDate() + 1);
+    const dataVerifTitulo = proximoDiaUtil(dVerifTit);
+
+    // Etapa 3: Solicitar Artigo
+    const d14 = new Date(dataSem); d14.setDate(d14.getDate() - 14);
+    const dataSolicArtigo = ajustarAnteriorSDF(d14);
+    const d7 = new Date(dataSem); d7.setDate(d7.getDate() - 7);
+    const prazoArtigo = ajustarAnteriorSDF(d7);
+
+    // Etapa 4: Verificar Envio do Artigo (1 dia útil após o prazo)
+    const dVerifArt = new Date(prazoArtigo); dVerifArt.setDate(dVerifArt.getDate() + 1);
+    const dataVerifArtigo = proximoDiaUtil(dVerifArt);
+
+    return [
+        {
+            key: `${id}_sem_titulo`,
+            dataEmail: dataSolicTitulo,
+            prazo: prazoTitulo,
+            tipo: 'sem_solic_titulo',
+            titulo: 'Solicitar Título e Resumo',
+            descricao: `Solicitar a ${sem.nomeAluno} o envio do título e resumo do artigo (em inglês). Prazo: ${formatDate(prazoTitulo)}. Seminário: ${formatDate(dataSem)}.`,
+            sem
+        },
+        {
+            key: `${id}_sem_verif_titulo`,
+            dataEmail: dataVerifTitulo,
+            prazo: dataVerifTitulo,
+            tipo: 'sem_verif_titulo',
+            titulo: 'Verificar Envio: Título e Resumo',
+            descricao: `Confirmar se ${sem.nomeAluno} enviou o título e o resumo (prazo era ${formatDate(prazoTitulo)}). Se não recebeu, enviar cobrança.`,
+            sem
+        },
+        {
+            key: `${id}_sem_artigo`,
+            dataEmail: dataSolicArtigo,
+            prazo: prazoArtigo,
+            tipo: 'sem_solic_artigo',
+            titulo: 'Solicitar Artigo',
+            descricao: `Solicitar a ${sem.nomeAluno} o envio do artigo (em inglês). Prazo: ${formatDate(prazoArtigo)}. Seminário: ${formatDate(dataSem)}.`,
+            sem
+        },
+        {
+            key: `${id}_sem_verif_artigo`,
+            dataEmail: dataVerifArtigo,
+            prazo: dataVerifArtigo,
+            tipo: 'sem_verif_artigo',
+            titulo: 'Verificar Envio: Artigo',
+            descricao: `Confirmar se ${sem.nomeAluno} enviou o artigo (prazo era ${formatDate(prazoArtigo)}). Se não recebeu, enviar cobrança.`,
+            sem
+        }
+    ];
+}
+
+function gerarEmailSeminario(evento) {
+    const sem = evento.sem;
+    const aluno = sem.nomeAluno;
+    const dataSemFmt = formatDate(parseDate(sem.data));
+    const horarioStr = sem.horario ? ` às ${sem.horario}` : '';
+    const prazoFmt = formatDate(evento.prazo);
+    let assunto = '', corpo = '';
+    switch (evento.tipo) {
+        case 'sem_solic_titulo':
+            assunto = `Seminário ${dataSemFmt} – Envio de Título e Resumo`;
+            corpo = `Prezado(a) ${aluno},\n\nEspero que esteja bem.\n\nSeu seminário está agendado para *${dataSemFmt}${horarioStr}*.\n\nSolicito o envio do *título e do resumo* do artigo que será apresentado, ambos *em inglês*.\n\n*Prazo para envio: ${prazoFmt}*\n\nQualquer dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
+            break;
+        case 'sem_verif_titulo':
+            assunto = `URGENTE – Envio Pendente: Título e Resumo – Seminário ${dataSemFmt}`;
+            corpo = `Prezado(a) ${aluno},\n\nEspero que esteja bem.\n\nEntro em contato para informar que o prazo para envio do *título e do resumo* do artigo do seu seminário (${dataSemFmt}) expirou em ${prazoFmt} e o material ainda não foi recebido.\n\nSolicito com urgência o envio o mais breve possível.\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
+            break;
+        case 'sem_solic_artigo':
+            assunto = `Seminário ${dataSemFmt} – Envio do Artigo`;
+            corpo = `Prezado(a) ${aluno},\n\nEspero que esteja bem.\n\nSeu seminário está agendado para *${dataSemFmt}${horarioStr}*.\n\nSolicito o envio do *artigo* que será apresentado, *em inglês*.\n\n*Prazo para envio: ${prazoFmt}*\n\nQualquer dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
+            break;
+        case 'sem_verif_artigo':
+            assunto = `URGENTE – Envio Pendente: Artigo – Seminário ${dataSemFmt}`;
+            corpo = `Prezado(a) ${aluno},\n\nEspero que esteja bem.\n\nEntro em contato para informar que o prazo para envio do *artigo* do seu seminário (${dataSemFmt}) expirou em ${prazoFmt} e o material ainda não foi recebido.\n\nSolicito com urgência o envio o mais breve possível.\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
+            break;
+    }
+    return { assunto, corpo, para: sem.emailAluno || '' };
+}
+
+async function salvarSeminario() {
+    const data = document.getElementById('semData').value;
+    const horario = document.getElementById('semHorario').value;
+    const nomeAluno = document.getElementById('semNomeAluno').value.trim();
+    const emailAluno = document.getElementById('semEmailAluno').value.trim();
+    if (!data || !nomeAluno) { showToast('Preencha pelo menos a data e o nome do(a) aluno(a).', true); return; }
+    const groupIds = getGruposSelecionados('semGrupos');
+    const novo = { id: Date.now().toString(), data, horario, nomeAluno, emailAluno, criadoPor: currentUser.uid, criadoPorNome: currentUserProfile.nome, groupIds };
+    const ownerArr = [...(allUserData[currentUser.uid]?.seminarios || []), novo];
+    await _writeField(currentUser.uid, 'seminarios', ownerArr);
+    limparFormSem();
+    renderGroupChipSelectors();
+    showToast('Seminário cadastrado!');
+    renderSeminarios(); renderTimeline();
+}
+
+function limparFormSem() {
+    document.getElementById('semData').value = '';
+    document.getElementById('semHorario').value = '';
+    document.getElementById('semNomeAluno').value = '';
+    document.getElementById('semEmailAluno').value = '';
+}
+
+function renderSeminarios() {
+    const sems = getSeminarios();
+    const container = document.getElementById('listaSeminarios');
+    if (!container) return;
+    if (sems.length === 0) { container.innerHTML = '<div class="empty-state"><p>Nenhum seminário cadastrado</p></div>'; return; }
+    const ordenados = [...sems].sort((a,b) => (a.data||'').localeCompare(b.data||''));
+    container.innerHTML = ordenados.map(sem => {
+        const dataFmt = sem.data ? formatDate(parseDate(sem.data)) : '—';
+        const horarioStr = sem.horario ? ` · ${sem.horario}` : '';
+        const criadorTag = (sem.criadoPor && sem.criadoPor !== currentUser.uid) ? `<span class="criador-tag">por ${escapeHtml(sem.criadoPorNome || getUserName(sem.criadoPor))}</span>` : '';
+        const gruposBadges = (sem.groupIds && sem.groupIds.length > 0) ? `<div class="groups-inline">${sem.groupIds.map(gid => { const g = cachedGroups.find(x => x.id === gid); return g ? `<span class="gi-badge">👥 ${escapeHtml(g.nome)}</span>` : ''; }).join('')}</div>` : '';
+        const podeEditar = canEditItem(sem);
+        const botoes = podeEditar
+            ? `<button class="btn btn-sm" style="background:#e8eaf6; color:#1a237e; border:1px solid #c5cae9; font-weight:600;" onclick="abrirModalEditarGrupos('sem','${sem.id}')">👥 Grupos</button><button class="btn btn-primary btn-sm" onclick="editarSeminario('${sem.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="excluirSeminario('${sem.id}')">Excluir</button>`
+            : `<span style="font-size:0.75rem; color:#999;">somente leitura</span>`;
+        return `<div class="dep-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <h3>${escapeHtml(sem.nomeAluno)}${criadorTag}</h3>
+                <div style="display:flex; gap:6px;">${botoes}</div>
+            </div>
+            <div style="font-size:0.83rem; color:#555; margin-bottom:6px;">${dataFmt}${horarioStr}${sem.emailAluno?` · ${escapeHtml(sem.emailAluno)}`:''}</div>
+            ${gruposBadges}
+        </div>`;
+    }).join('');
+}
+
+async function excluirSeminario(id) {
+    const alvo = getSeminarios().find(s => s.id === id);
+    if (!alvo) return;
+    if (!canEditItem(alvo)) { showToast('Apenas o criador ou administrador pode excluir este item.', true); return; }
+    if (!confirm('Excluir este seminário?')) return;
+    const arr = getSeminarios().filter(s => s.id !== id);
+    const st = getStatus();
+    Object.keys(st).forEach(k => { if (k.startsWith(id+'_')) delete st[k]; });
+    await saveSeminarios(arr); await saveStatus(st);
+    renderSeminarios(); renderTimeline();
+    showToast('Seminário excluído.');
+}
+
+function editarSeminario(id) {
+    const sem = getSeminarios().find(s => s.id === id);
+    if (!sem) return;
+    if (!canEditItem(sem)) { showToast('Apenas o criador ou administrador pode editar este item.', true); return; }
+    popularGrupoChipsEdit('editSemGruposContainer', sem.groupIds || []);
+    document.getElementById('editSemId').value = id;
+    document.getElementById('editSemData').value = sem.data || '';
+    document.getElementById('editSemHorario').value = sem.horario || '';
+    document.getElementById('editSemNomeAluno').value = sem.nomeAluno || '';
+    document.getElementById('editSemEmailAluno').value = sem.emailAluno || '';
+    document.getElementById('modalEditarSem').classList.add('active');
+}
+
+function fecharModalEditarSem() { document.getElementById('modalEditarSem').classList.remove('active'); }
+
+async function salvarEdicaoSem() {
+    const id = document.getElementById('editSemId').value;
+    const data = document.getElementById('editSemData').value;
+    const horario = document.getElementById('editSemHorario').value;
+    const nomeAluno = document.getElementById('editSemNomeAluno').value.trim();
+    const emailAluno = document.getElementById('editSemEmailAluno').value.trim();
+    if (!data || !nomeAluno) { showToast('Preencha pelo menos a data e o nome do(a) aluno(a).', true); return; }
+    const arr = getSeminarios();
+    const idx = arr.findIndex(s => s.id === id);
+    if (idx === -1) return;
+    if (!canEditItem(arr[idx])) { showToast('Apenas o criador ou administrador pode editar este item.', true); return; }
+    // Limpar status antigos
+    const st = getStatus();
+    Object.keys(st).forEach(k => { if (k.startsWith(id+'_')) delete st[k]; });
+    const editGroupIds = getGrupoChipsEdit('editSemGruposContainer');
+    arr[idx] = { ...arr[idx], data, horario, nomeAluno, emailAluno, groupIds: editGroupIds };
+    await saveSeminarios(arr); await saveStatus(st);
+    fecharModalEditarSem();
+    renderSeminarios(); renderTimeline();
+    showToast('Seminário atualizado!');
+}
+
+function verEtapasSeminario(semId) {
+    const sem = getSeminarios().find(s => s.id === semId);
+    if (!sem) return;
+    const status = getStatus();
+    const eventos = gerarEventosSeminario(sem);
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    document.getElementById('modalEtapasTitulo').textContent = `Seminário – ${sem.nomeAluno}`;
+    document.getElementById('modalEtapasProf').textContent = `${formatDate(parseDate(sem.data))}${sem.horario?` · ${sem.horario}`:''}`;
+    const primeiroPendente = eventos.find(ev => !status[ev.key]);
+    document.getElementById('modalEtapasLista').innerHTML = eventos.map((ev, i) => {
+        const feita = !!status[ev.key];
+        const isAtual = !feita && ev === primeiroPendente;
+        const atrasada = !feita && ev.dataEmail < hoje;
+        let cls = feita ? 'feita' : isAtual ? (atrasada ? 'atrasada' : 'atual') : (atrasada ? 'atrasada' : 'futura');
+        let icone = feita ? '✓' : isAtual ? '→' : (i + 1);
+        return `<div class="etapa-item"><div class="etapa-icone ${cls}">${icone}</div><div class="etapa-info"><div class="etapa-titulo ${cls}">${escapeHtml(ev.titulo)}</div><div class="etapa-data">${formatDate(ev.dataEmail)}${feita?' · Concluído':atrasada?' · Atrasado':''}</div></div></div>`;
+    }).join('');
+    document.getElementById('modalEtapas').classList.add('active');
+}
+
+async function desfazerSeminario(semId) {
+    const sem = getSeminarios().find(s => s.id === semId);
+    if (!sem) return;
+    const st = getStatus();
+    const eventos = gerarEventosSeminario(sem);
+    const feitos = eventos.filter(ev => st[ev.key]);
+    if (feitos.length === 0) return;
+    delete st[feitos[feitos.length-1].key];
+    await saveStatus(st); renderTimeline();
+    showToast('Etapa desfeita.');
 }
 
 // ==========================================
@@ -3178,6 +3557,7 @@ function switchTab(name) {
     if (name==='timeline') renderTimeline();
     if (name==='proficiencia') renderProficiencias();
     if (name==='dependencia') renderDependencias();
+    if (name==='seminarios') renderSeminarios();
     if (name==='admin' && currentUserProfile?.role==='admin') { renderAdminUsuarios(); renderAdminGrupos(); }
     sessionStorage.setItem('activeTab', name);
 
