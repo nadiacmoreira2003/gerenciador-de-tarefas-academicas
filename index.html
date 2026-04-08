@@ -951,6 +951,28 @@
     </div>
 </div>
 
+<!-- Modal: Título e Resumo do Artigo (verif_titulo) -->
+<div class="modal-overlay" id="modalSemInfo">
+    <div class="modal">
+        <h3>Registrar Título e Resumo</h3>
+        <p style="font-size:0.82rem; color:#666; margin-bottom:12px;">Para concluir esta etapa, registre o título e o resumo do artigo (em inglês) enviados pelo(a) aluno(a). Estas informações serão usadas no evento do calendário e no e-mail aos alunos.</p>
+        <input type="hidden" id="semInfoSemId">
+        <input type="hidden" id="semInfoKey">
+        <div class="form-group" style="margin-bottom:12px;">
+            <label>Título do Artigo (em inglês)</label>
+            <input type="text" id="semInfoTitulo" style="width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:0.95rem;">
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+            <label>Resumo do Artigo (em inglês)</label>
+            <textarea id="semInfoResumo" style="width:100%; min-height:140px; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:0.9rem; font-family:inherit; resize:vertical;"></textarea>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary btn-sm" onclick="fecharModalTituloResumo()">Cancelar</button>
+            <button class="btn btn-success btn-sm" onclick="salvarTituloResumo()">✓ Salvar e Concluir Etapa</button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Editar Seminário -->
 <div class="modal-overlay" id="modalEditarSem">
     <div class="modal">
@@ -2201,44 +2223,44 @@ function gerarEmail(evento) {
     switch (evento.tipo) {
         case 'programa':
             assunto = `Programa da Disciplina – ${disc}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nConforme cronograma acadêmico, solicito o preenchimento do programa da disciplina *${disc}*.\n\nSegue em anexo o modelo do programa para preenchimento.\n\nPrazo para envio: ${prazo}\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nConforme cronograma acadêmico, solicito o preenchimento do programa da disciplina.\n\n*Disciplina:* ${disc}\n*Prazo para envio:* ${prazo}\n\nSegue em anexo o modelo do programa para preenchimento.\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'verificacao_programa':
             assunto = `URGENTE – Envio de Programa Pendente – ${disc}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nEntro em contato para informar que o prazo para envio do programa da disciplina *${disc}* expirou em ${prazo} e o programa ainda não foi recebido pela coordenação.\n\nSolicito com urgência o envio o mais breve possível.\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\n*ATENÇÃO: o prazo para envio do programa da disciplina expirou e o material ainda não foi recebido pela coordenação.*\n\n*Disciplina:* ${disc}\n*Prazo expirado em:* ${prazo}\n\n*Solicito com urgência o envio o mais breve possível.*\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'elaboracao_prova':
             assunto = `Elaboração de Prova – ${disc} – ${evento.prova.nome}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nSolicito a elaboração da *${evento.prova.nome}* da disciplina *${disc}*, cuja aplicação está prevista para ${formatDate(parseDate(evento.prova.data))}.\n\nSegue em anexo o modelo de prova para preenchimento.\n\nPrazo para envio da prova elaborada: ${prazo}\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nSolicito a elaboração da prova conforme dados abaixo:\n\n*Disciplina:* ${disc}\n*Prova:* ${evento.prova.nome}\n*Data de Aplicação:* ${formatDate(parseDate(evento.prova.data))}\n*Prazo para envio da prova elaborada:* ${prazo}\n\nSegue em anexo o modelo de prova para preenchimento.\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'verificacao_envio': {
             const dataProvaVer = parseDate(evento.prova.data);
             const d7ver = new Date(dataProvaVer); d7ver.setDate(d7ver.getDate()-7);
             const prazoElabVer = proximoDiaUtil(d7ver);
             assunto = `URGENTE – Envio de Prova Pendente – ${disc} – ${evento.prova.nome}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nEntro em contato para informar que o prazo para envio da *${evento.prova.nome}* da disciplina *${disc}* expirou em ${formatDate(prazoElabVer)} e a prova ainda não foi recebida pela coordenação.\n\nA aplicação está prevista para ${formatDate(dataProvaVer)}, sendo necessário tempo para impressão das cópias. Por isso, solicito com urgência o envio da prova elaborada o mais breve possível.\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\n*ATENÇÃO: o prazo para envio da prova expirou e o material ainda não foi recebido pela coordenação.*\n\n*Disciplina:* ${disc}\n*Prova:* ${evento.prova.nome}\n*Prazo expirado em:* ${formatDate(prazoElabVer)}\n*Data de Aplicação:* ${formatDate(dataProvaVer)}\n\nA aplicação está prevista para a data acima, sendo necessário tempo para impressão das cópias.\n\n*Solicito com urgência o envio da prova elaborada o mais breve possível.*\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
             break;
         }
         case 'correcao_prova':
             assunto = `Correção de Prova – ${disc} – ${evento.prova.nome}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nInformo que a *${evento.prova.nome}* da disciplina *${disc}* foi aplicada em ${formatDate(parseDate(evento.prova.data))}.\n\nSolicito que:\n• Realize a correção das provas;\n• Lance as notas no portal acadêmico;\n• Envie mensagem à turma informando que as notas foram lançadas;\n• Entregue as provas corrigidas aos alunos, fisicamente ou por e-mail.\n\nPrazo: ${prazo}\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nInformo que a prova foi aplicada conforme dados abaixo:\n\n*Disciplina:* ${disc}\n*Prova:* ${evento.prova.nome}\n*Data de Aplicação:* ${formatDate(parseDate(evento.prova.data))}\n*Prazo para correção e lançamento:* ${prazo}\n\nSolicito que:\n• Realize a correção das provas;\n• Lance as notas no portal acadêmico;\n• Envie mensagem à turma informando que as notas foram lançadas;\n• Entregue as provas corrigidas aos alunos, fisicamente ou por e-mail.\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'correcao_trabalho':
             assunto = `Correção de Trabalho – ${disc} – ${evento.trabalho.nome}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nInformo que o prazo de entrega do *${evento.trabalho.nome}* da disciplina *${disc}* foi em ${formatDate(parseDate(evento.trabalho.data))}.\n\nSolicito que:\n• Realize a correção dos trabalhos;\n• Lance as notas no portal acadêmico;\n• Envie mensagem à turma informando que as notas foram lançadas;\n• Entregue os trabalhos corrigidos aos alunos, fisicamente ou por e-mail.\n\nPrazo: ${prazo}\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nInformo que o prazo de entrega do trabalho foi cumprido conforme dados abaixo:\n\n*Disciplina:* ${disc}\n*Trabalho:* ${evento.trabalho.nome}\n*Data de Entrega:* ${formatDate(parseDate(evento.trabalho.data))}\n*Prazo para correção e lançamento:* ${prazo}\n\nSolicito que:\n• Realize a correção dos trabalhos;\n• Lance as notas no portal acadêmico;\n• Envie mensagem à turma informando que as notas foram lançadas;\n• Entregue os trabalhos corrigidos aos alunos, fisicamente ou por e-mail.\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'verificacao_nota_prova':
             assunto = `URGENTE – Lançamento de Nota Pendente – ${disc} – ${evento.prova.nome}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nEntro em contato para verificar o lançamento das notas da *${evento.prova.nome}* da disciplina *${disc}*.\n\nO prazo para correção e lançamento expirou em ${prazo} e as notas ainda não constam no portal acadêmico.\n\nSolicito com urgência que:\n• Lance as notas no portal acadêmico;\n• Envie mensagem à turma informando que as notas foram lançadas;\n• Entregue as provas corrigidas aos alunos, fisicamente ou por e-mail.\n\nCaso já tenha realizado o lançamento, por favor desconsidere este e-mail.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\n*ATENÇÃO: o prazo para correção e lançamento das notas expirou e as notas ainda não constam no portal acadêmico.*\n\n*Disciplina:* ${disc}\n*Prova:* ${evento.prova.nome}\n*Prazo expirado em:* ${prazo}\n\n*Solicito com urgência que:*\n• Lance as notas no portal acadêmico;\n• Envie mensagem à turma informando que as notas foram lançadas;\n• Entregue as provas corrigidas aos alunos, fisicamente ou por e-mail.\n\nCaso já tenha realizado o lançamento, por favor desconsidere este e-mail.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'verificacao_nota_trabalho':
             assunto = `URGENTE – Lançamento de Nota Pendente – ${disc} – ${evento.trabalho.nome}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nEntro em contato para verificar o lançamento das notas do *${evento.trabalho.nome}* da disciplina *${disc}*.\n\nO prazo para correção e lançamento expirou em ${prazo} e as notas ainda não constam no portal acadêmico.\n\nSolicito com urgência que:\n• Lance as notas no portal acadêmico;\n• Envie mensagem à turma informando que as notas foram lançadas;\n• Entregue os trabalhos corrigidos aos alunos, fisicamente ou por e-mail.\n\nCaso já tenha realizado o lançamento, por favor desconsidere este e-mail.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\n*ATENÇÃO: o prazo para correção e lançamento das notas expirou e as notas ainda não constam no portal acadêmico.*\n\n*Disciplina:* ${disc}\n*Trabalho:* ${evento.trabalho.nome}\n*Prazo expirado em:* ${prazo}\n\n*Solicito com urgência que:*\n• Lance as notas no portal acadêmico;\n• Envie mensagem à turma informando que as notas foram lançadas;\n• Entregue os trabalhos corrigidos aos alunos, fisicamente ou por e-mail.\n\nCaso já tenha realizado o lançamento, por favor desconsidere este e-mail.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'envio_biblioteca': {
             const emailBib = getEmailBiblioteca();
             assunto = `Solicitação de Impressão de Prova – ${disc} – ${evento.prova.nome}`;
-            corpo = `Prezado(a),\n\nSolicito a impressão da prova conforme dados abaixo:\n\nDisciplina: ${disc}\nProfessor(a): ${prof}\nData da Prova: ${formatDate(parseDate(evento.prova.data))}\nNúmero de cópias: ${evento.prova.copias||30}\n\nSegue em anexo o arquivo da prova para impressão.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a),\n\nSolicito a impressão da prova conforme dados abaixo:\n\n*Disciplina:* ${disc}\n*Professor(a):* ${prof}\n*Prova:* ${evento.prova.nome}\n*Data da Prova:* ${formatDate(parseDate(evento.prova.data))}\n*Número de cópias:* ${evento.prova.copias||30}\n\nSegue em anexo o arquivo da prova para impressão.\n\nAtenciosamente,\nCoordenação`;
             return { assunto, corpo, para: emailBib };
         }
     }
@@ -2250,14 +2272,14 @@ function gerarEmailProficiencia(evento) {
     const tipoLabel = evento.dataItem.tipoPagamento === 'paga' ? 'paga' : 'gratuita';
     const prazoInscricao = formatDate(evento.prazo);
     const hi = evento.dataItem.horaInicio, hf = evento.dataItem.horaFim;
-    const horarioStr = (hi && hf) ? `*Horário: ${hi} às ${hf}*\n` : hi ? `*Horário: a partir das ${hi}*\n` : '';
+    const horarioStr = (hi && hf) ? `*Horário:* ${hi} às ${hf}\n` : hi ? `*Horário:* a partir das ${hi}\n` : '';
     let assunto, corpo;
     if (evento.tipo === 'prof_comunicado') {
         assunto = `Prova de Proficiência – ${dataProva}`;
-        corpo = `Prezados alunos,\n\nInformamos que a próxima *Prova de Proficiência* está programada para:\n\n*Data: ${dataProva}*\n${horarioStr}*Modalidade: Online*\n\nA prova é *${tipoLabel}*.\n\n*Prazo para inscrição: ${prazoInscricao}*\n\nPara mais informações sobre como se inscrever, entre em contato com a coordenação.\n\nAtenciosamente,\nCoordenação`;
+        corpo = `Prezados alunos,\n\nInformamos que a próxima *Prova de Proficiência* está programada para:\n\n*Data:* ${dataProva}\n${horarioStr}*Modalidade:* Online\n*Tipo:* ${tipoLabel}\n\n*Prazo para inscrição:* ${prazoInscricao}\n\n*Não deixe para a última hora!* Para mais informações sobre como se inscrever, entre em contato com a coordenação.\n\nAtenciosamente,\nCoordenação`;
     } else {
         assunto = `Lembrete – Prova de Proficiência – ${dataProva}`;
-        corpo = `Prezados alunos,\n\nLembramos que a *Prova de Proficiência* está programada para:\n\n*Data: ${dataProva}*\n${horarioStr}*Modalidade: Online*\n\nA prova é *${tipoLabel}*.\n\nAtenção: o prazo para inscrição é *${prazoInscricao}*. Não deixe para a última hora!\n\nPara mais informações sobre como se inscrever, entre em contato com a coordenação.\n\nAtenciosamente,\nCoordenação`;
+        corpo = `Prezados alunos,\n\nLembramos que a *Prova de Proficiência* está programada para:\n\n*Data:* ${dataProva}\n${horarioStr}*Modalidade:* Online\n*Tipo:* ${tipoLabel}\n\n*ATENÇÃO: o prazo para inscrição é ${prazoInscricao}. Não deixe para a última hora!*\n\nPara mais informações sobre como se inscrever, entre em contato com a coordenação.\n\nAtenciosamente,\nCoordenação`;
     }
     return { assunto, corpo, para: '' };
 }
@@ -2274,11 +2296,11 @@ function gerarEmailDependencia(evento) {
     switch (evento.tipo) {
         case 'dep_elaboracao':
             assunto = `Elaboração de Prova de Dependência – ${disciplina}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nSolicito a elaboração da prova de dependência da disciplina *${disciplina}*, cuja aplicação está prevista para ${dataProva}${horario ? ` (${horario})` : ''}.\n\n*Modalidade: ${modalidade}*\n\nSegue em anexo o modelo de prova para preenchimento.\n\nPrazo para envio da prova elaborada: ${prazo}\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nSolicito a elaboração da prova de dependência conforme dados abaixo:\n\n*Disciplina:* ${disciplina}\n*Data de Aplicação:* ${dataProva}${horario ? `\n*Horário:* ${horario}` : ''}\n*Modalidade:* ${modalidade}\n*Prazo para envio da prova elaborada:* ${prazo}\n\nSegue em anexo o modelo de prova para preenchimento.\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'dep_verif_elaboracao':
             assunto = `URGENTE – Envio de Prova de Dependência Pendente – ${disciplina}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nEntro em contato para informar que o prazo para envio da prova de dependência de *${disciplina}* expirou em ${prazo} e a prova ainda não foi recebida pela coordenação.\n\nA aplicação está prevista para ${dataProva}, sendo necessário tempo para impressão. Por isso, solicito com urgência o envio da prova elaborada o mais breve possível.\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\n*ATENÇÃO: o prazo para envio da prova de dependência expirou e o material ainda não foi recebido pela coordenação.*\n\n*Disciplina:* ${disciplina}\n*Data de Aplicação:* ${dataProva}\n*Prazo expirado em:* ${prazo}\n\nComo a aplicação está próxima e é necessário tempo para impressão, *solicito com urgência o envio da prova elaborada o mais breve possível*.\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'dep_quantitativo':
             assunto = '';
@@ -2286,15 +2308,15 @@ function gerarEmailDependencia(evento) {
             break;
         case 'dep_impressao':
             assunto = `Solicitação de Impressão – Prova de Dependência – ${disciplina}`;
-            corpo = `Prezado(a),\n\nSolicito a impressão da prova de dependência conforme dados abaixo:\n\nDisciplina: ${disciplina}\nProfessor(a): ${prof}\nData da Prova: ${dataProva}${horario ? `\nHorário: ${horario}` : ''}\nModalidade: ${modalidade}\nNúmero de cópias: ${disc.copias||30}\n\nSegue em anexo o arquivo da prova para impressão.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a),\n\nSolicito a impressão da prova de dependência conforme dados abaixo:\n\n*Disciplina:* ${disciplina}\n*Professor(a):* ${prof}\n*Data da Prova:* ${dataProva}${horario ? `\n*Horário:* ${horario}` : ''}\n*Modalidade:* ${modalidade}\n*Número de cópias:* ${disc.copias||30}\n\nSegue em anexo o arquivo da prova para impressão.\n\nAtenciosamente,\nCoordenação`;
             return { assunto, corpo, para: '' };
         case 'dep_correcao':
             assunto = `Correção de Prova de Dependência – ${disciplina}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nInformo que a prova de dependência da disciplina *${disciplina}* foi aplicada em ${dataProva}.\n\nSolicito que:\n• Realize a correção das provas;\n• Lance as notas no portal acadêmico;\n• Envie mensagem aos alunos informando que as notas foram lançadas;\n• Entregue as provas corrigidas, fisicamente ou por e-mail.\n\nPrazo: ${prazo}\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nInformo que a prova de dependência foi aplicada conforme dados abaixo:\n\n*Disciplina:* ${disciplina}\n*Data de Aplicação:* ${dataProva}\n*Prazo para correção e lançamento:* ${prazo}\n\nSolicito que:\n• Realize a correção das provas;\n• Lance as notas no portal acadêmico;\n• Envie mensagem aos alunos informando que as notas foram lançadas;\n• Entregue as provas corrigidas, fisicamente ou por e-mail.\n\nCaso tenha alguma dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'dep_nota':
             assunto = `URGENTE – Lançamento de Nota Pendente – Dependência – ${disciplina}`;
-            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\nEntro em contato para verificar o lançamento das notas da prova de dependência de *${disciplina}*.\n\nO prazo para correção e lançamento expirou em ${prazo} e as notas ainda não constam no portal acadêmico.\n\nSolicito com urgência que:\n• Lance as notas no portal acadêmico;\n• Envie mensagem aos alunos informando que as notas foram lançadas;\n• Entregue as provas corrigidas, fisicamente ou por e-mail.\n\nCaso já tenha realizado o lançamento, por favor desconsidere este e-mail.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${prof},\n\nEspero que esteja bem.\n\n*ATENÇÃO: o prazo para correção e lançamento das notas da prova de dependência expirou e as notas ainda não constam no portal acadêmico.*\n\n*Disciplina:* ${disciplina}\n*Data de Aplicação:* ${dataProva}\n*Prazo expirado em:* ${prazo}\n\n*Solicito com urgência que:*\n• Lance as notas no portal acadêmico;\n• Envie mensagem aos alunos informando que as notas foram lançadas;\n• Entregue as provas corrigidas, fisicamente ou por e-mail.\n\nCaso já tenha realizado o lançamento, por favor desconsidere este e-mail.\n\nAtenciosamente,\nCoordenação`;
             break;
     }
     return { assunto, corpo, para: disc.emailProfessor };
@@ -2750,6 +2772,18 @@ function renderTimeline() {
             }
             const proxima = pendentes[0];
             const etapaNum = concluidos.length + 1;
+            // Botões customizados conforme tipo da etapa
+            let acoesSem = '';
+            if (proxima.tipo === 'sem_verif_titulo') {
+                acoesSem = `<button class="btn btn-primary btn-sm" onclick='verEmail(${JSON.stringify(proxima.key)})'>✉ Ver E-mail (Cobrança)</button>
+                            <button class="btn btn-success btn-sm" onclick="abrirModalTituloResumo('${sem.id}','${proxima.key}')">📝 Registrar Título e Resumo</button>`;
+            } else if (proxima.tipo === 'sem_comunicacao') {
+                acoesSem = `<button class="btn btn-primary btn-sm" onclick="baixarICSSeminario('${sem.id}')">📅 Criar Evento no Calendário (.ics)</button>
+                            <button class="btn btn-success btn-sm" onclick="marcarFeito('${proxima.key}')">✓ Marcar como Feito</button>`;
+            } else {
+                acoesSem = `<button class="btn btn-primary btn-sm" onclick='verEmail(${JSON.stringify(proxima.key)})'>✉ Ver E-mail</button>
+                            <button class="btn btn-success btn-sm" onclick="marcarFeito('${proxima.key}')">✓ Marcar como Feito</button>`;
+            }
             return `<div class="task-card ${cardClassMap[situacao]}">
                 <div class="task-card-header">
                     <div><h3>Seminário – ${escapeHtml(sem.nomeAluno)}</h3><p class="task-professor">${dataSemFmt}${horarioStr}</p></div>
@@ -2763,8 +2797,7 @@ function renderTimeline() {
                 </div>
                 <div class="task-actions" style="justify-content:space-between; align-items:flex-end;">
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <button class="btn btn-primary btn-sm" onclick='verEmail(${JSON.stringify(proxima.key)})'>✉ Ver E-mail</button>
-                        <button class="btn btn-success btn-sm" onclick="marcarFeito('${proxima.key}')">✓ Marcar como Feito</button>
+                        ${acoesSem}
                         ${concluidos.length > 0 ? `<button class="btn btn-sm" style="background:#ffebee; color:#b71c1c; border:1px solid #ef9a9a; font-weight:600;" onclick="desfazerSeminario('${sem.id}')">↩ Desfazer</button>` : ''}
                     </div>
                     <button class="btn btn-secondary btn-sm" style="flex-shrink:0;" onclick="verEtapasSeminario('${sem.id}')">Ver Etapas</button>
@@ -3199,7 +3232,7 @@ function verEmail(key) {
     }
     if (!eventoAlvo) return;
     const tiposDep = ['dep_elaboracao','dep_verif_elaboracao','dep_quantitativo','dep_impressao','dep_correcao','dep_nota'];
-    const tiposSem = ['sem_solic_titulo','sem_verif_titulo','sem_solic_artigo','sem_verif_artigo'];
+    const tiposSem = ['sem_solic_titulo','sem_verif_titulo','sem_solic_artigo','sem_verif_artigo','sem_comunicacao','sem_envio_artigo'];
     const email = (eventoAlvo.tipo==='prof_comunicado'||eventoAlvo.tipo==='prof_lembrete')
         ? gerarEmailProficiencia(eventoAlvo)
         : tiposDep.includes(eventoAlvo.tipo) ? gerarEmailDependencia(eventoAlvo)
@@ -3218,24 +3251,39 @@ function verEmail(key) {
 }
 let currentEmail = null;
 function fecharModal() { document.getElementById('modalEmail').classList.remove('active'); }
+function _buildEmailClipboardItem(div) {
+    // Envolve em um div com fonte/line-height consistentes. Mantém <br> para quebras.
+    const htmlWrapped = `<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5;">${div.innerHTML}</div>`;
+    return new ClipboardItem({
+        'text/html': new Blob([htmlWrapped], { type: 'text/html' }),
+        'text/plain': new Blob([div.innerText], { type: 'text/plain' })
+    });
+}
+
 function copiarEmail() {
     const div = document.getElementById('modalCorpo');
     // Tenta copiar com formatação HTML (negrito preservado ao colar no Gmail/Outlook)
     try {
-        const item = new ClipboardItem({
-            'text/html': new Blob([div.innerHTML.replace(/<br>/g, '\n')], { type: 'text/html' }),
-            'text/plain': new Blob([div.innerText], { type: 'text/plain' })
-        });
-        navigator.clipboard.write([item]).then(() => showToast('Texto copiado!'));
+        navigator.clipboard.write([_buildEmailClipboardItem(div)]).then(() => showToast('Texto copiado!'));
     } catch {
         navigator.clipboard.writeText(div.innerText).then(() => showToast('Texto copiado!'));
     }
 }
 function abrirMailto() {
     if (!currentEmail) return;
-    // mailto é texto simples — remove os asteriscos mas mantém o conteúdo
+    // mailto é texto simples — copia versão HTML formatada no clipboard
+    // para que o usuário possa colar (Ctrl+V) no corpo do e-mail mantendo o negrito
+    const div = document.getElementById('modalCorpo');
     const bodyText = currentEmail.corpo.replace(/\*(.*?)\*/g, '$1');
-    window.open(`mailto:${currentEmail.para}?subject=${encodeURIComponent(currentEmail.assunto)}&body=${encodeURIComponent(bodyText)}`);
+    const abrir = () => {
+        window.open(`mailto:${currentEmail.para}?subject=${encodeURIComponent(currentEmail.assunto)}&body=${encodeURIComponent(bodyText)}`);
+        showToast('Texto formatado copiado! Cole (Ctrl+V) no corpo do e-mail para manter o negrito.');
+    };
+    try {
+        navigator.clipboard.write([_buildEmailClipboardItem(div)]).then(abrir).catch(abrir);
+    } catch {
+        navigator.clipboard.writeText(div.innerText).then(abrir).catch(abrir);
+    }
 }
 
 // ==========================================
@@ -3279,6 +3327,12 @@ function gerarEventosSeminario(sem) {
     const dVerifArt = new Date(prazoArtigo); dVerifArt.setDate(dVerifArt.getDate() + 1);
     const dataVerifArtigo = proximoDiaUtil(dVerifArt);
 
+    // Etapa pós-verificação Título: Enviar Comunicação (mesma data da verificação)
+    const dataComunicacao = new Date(dataVerifTitulo);
+
+    // Etapa pós-verificação Artigo: Enviar Artigo (mesma data da verificação)
+    const dataEnvioArtigo = new Date(dataVerifArtigo);
+
     return [
         {
             key: `${id}_sem_titulo`,
@@ -3295,7 +3349,16 @@ function gerarEventosSeminario(sem) {
             prazo: dataVerifTitulo,
             tipo: 'sem_verif_titulo',
             titulo: 'Verificar Envio: Título e Resumo',
-            descricao: `Confirmar se ${sem.nomeAluno} enviou o título e o resumo (prazo era ${formatDate(prazoTitulo)}). Se não recebeu, enviar cobrança.`,
+            descricao: `Confirmar se ${sem.nomeAluno} enviou o título e o resumo. Para concluir, registrar o título e o resumo recebidos. Prazo era ${formatDate(prazoTitulo)}.`,
+            sem
+        },
+        {
+            key: `${id}_sem_comunicacao`,
+            dataEmail: dataComunicacao,
+            prazo: dataComunicacao,
+            tipo: 'sem_comunicacao',
+            titulo: 'Enviar Comunicação',
+            descricao: `Criar evento no calendário do seminário de ${sem.nomeAluno} (${formatDate(dataSem)}) com o título e resumo recebidos.`,
             sem
         },
         {
@@ -3313,7 +3376,16 @@ function gerarEventosSeminario(sem) {
             prazo: dataVerifArtigo,
             tipo: 'sem_verif_artigo',
             titulo: 'Verificar Envio: Artigo',
-            descricao: `Confirmar se ${sem.nomeAluno} enviou o artigo (prazo era ${formatDate(prazoArtigo)}). Se não recebeu, enviar cobrança.`,
+            descricao: `Confirmar se ${sem.nomeAluno} enviou o artigo. Para concluir, anexar o PDF recebido. Prazo era ${formatDate(prazoArtigo)}.`,
+            sem
+        },
+        {
+            key: `${id}_sem_envio_artigo`,
+            dataEmail: dataEnvioArtigo,
+            prazo: dataEnvioArtigo,
+            tipo: 'sem_envio_artigo',
+            titulo: 'Enviar Artigo aos Alunos',
+            descricao: `Enviar e-mail aos alunos com o artigo do seminário de ${sem.nomeAluno} em anexo. Seminário: ${formatDate(dataSem)}.`,
             sem
         }
     ];
@@ -3329,23 +3401,168 @@ function gerarEmailSeminario(evento) {
     switch (evento.tipo) {
         case 'sem_solic_titulo':
             assunto = `Seminário ${dataSemFmt} – Envio de Título e Resumo`;
-            corpo = `Prezado(a) ${aluno},\n\nEspero que esteja bem.\n\nSeu seminário está agendado para *${dataSemFmt}${horarioStr}*.\n\nSolicito o envio do *título e do resumo* do artigo que será apresentado, ambos *em inglês*.\n\n*Prazo para envio: ${prazoFmt}*\n\nQualquer dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${aluno},\n\nEspero que esteja bem.\n\nSeu seminário acadêmico está agendado conforme dados abaixo:\n\n*Data:* ${dataSemFmt}${sem.horario ? `\n*Horário:* ${sem.horario}` : ''}\n*Apresentador(a):* ${aluno}\n\nSolicito o envio do *título e do resumo* do artigo que será apresentado, ambos *em inglês*.\n\n*Prazo para envio:* ${prazoFmt}\n\nQualquer dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'sem_verif_titulo':
             assunto = `URGENTE – Envio Pendente: Título e Resumo – Seminário ${dataSemFmt}`;
-            corpo = `Prezado(a) ${aluno},\n\nEspero que esteja bem.\n\nEntro em contato para informar que o prazo para envio do *título e do resumo* do artigo do seu seminário (${dataSemFmt}) expirou em ${prazoFmt} e o material ainda não foi recebido.\n\nSolicito com urgência o envio o mais breve possível.\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${aluno},\n\nEspero que esteja bem.\n\n*ATENÇÃO: o prazo para envio do título e do resumo do artigo expirou e o material ainda não foi recebido pela coordenação.*\n\n*Data do Seminário:* ${dataSemFmt}${sem.horario ? `\n*Horário:* ${sem.horario}` : ''}\n*Apresentador(a):* ${aluno}\n*Prazo expirado em:* ${prazoFmt}\n\n*Solicito com urgência o envio do título e do resumo (em inglês) o mais breve possível.*\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'sem_solic_artigo':
             assunto = `Seminário ${dataSemFmt} – Envio do Artigo`;
-            corpo = `Prezado(a) ${aluno},\n\nEspero que esteja bem.\n\nSeu seminário está agendado para *${dataSemFmt}${horarioStr}*.\n\nSolicito o envio do *artigo* que será apresentado, *em inglês*.\n\n*Prazo para envio: ${prazoFmt}*\n\nQualquer dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${aluno},\n\nEspero que esteja bem.\n\nSeu seminário acadêmico está agendado conforme dados abaixo:\n\n*Data:* ${dataSemFmt}${sem.horario ? `\n*Horário:* ${sem.horario}` : ''}\n*Apresentador(a):* ${aluno}\n\nSolicito o envio do *artigo* que será apresentado, *em inglês*.\n\n*Prazo para envio:* ${prazoFmt}\n\nQualquer dúvida, estou à disposição.\n\nAtenciosamente,\nCoordenação`;
             break;
         case 'sem_verif_artigo':
             assunto = `URGENTE – Envio Pendente: Artigo – Seminário ${dataSemFmt}`;
-            corpo = `Prezado(a) ${aluno},\n\nEspero que esteja bem.\n\nEntro em contato para informar que o prazo para envio do *artigo* do seu seminário (${dataSemFmt}) expirou em ${prazoFmt} e o material ainda não foi recebido.\n\nSolicito com urgência o envio o mais breve possível.\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a) ${aluno},\n\nEspero que esteja bem.\n\n*ATENÇÃO: o prazo para envio do artigo expirou e o material ainda não foi recebido pela coordenação.*\n\n*Data do Seminário:* ${dataSemFmt}${sem.horario ? `\n*Horário:* ${sem.horario}` : ''}\n*Apresentador(a):* ${aluno}\n*Prazo expirado em:* ${prazoFmt}\n\n*Solicito com urgência o envio do artigo (em inglês) o mais breve possível.*\n\nCaso já tenha enviado, entre em contato imediatamente para confirmarmos o recebimento.\n\nAtenciosamente,\nCoordenação`;
             break;
+        case 'sem_envio_artigo': {
+            const tituloArt = sem.tituloArtigo || '(título não preenchido)';
+            const resumoArt = sem.resumoArtigo || '(resumo não preenchido)';
+            assunto = `Seminário Acadêmico - ${dataSemFmt} - Artigo`;
+            const linhaHorario = sem.horario ? `\n*Horário:* ${sem.horario}` : '';
+            corpo = `Prezados alunos,\n\nSegue informações sobre o próximo *Seminário Acadêmico*:\n\n*Data:* ${dataSemFmt}${linhaHorario}\n*Apresentador(a):* ${aluno}\n*Título do Artigo:* ${tituloArt}\n\n*Resumo:*\n${resumoArt}\n\nO artigo segue *em anexo* para leitura prévia.\n\n*ATENÇÃO: O artigo não pode ser compartilhado de forma alguma, por se tratar de uma pesquisa em desenvolvimento.*\n\n*Reforçamos a importância da leitura e discussão prévia antes do seminário, fundamental para uma participação efetiva.*\n\nAtenciosamente,\nCoordenação`;
+            return { assunto, corpo, para: '' };
+        }
     }
     return { assunto, corpo, para: sem.emailAluno || '' };
 }
+
+// ==========================================
+// SEMINÁRIO – AÇÕES ESPECIAIS
+// ==========================================
+function _icsEscape(str) {
+    return String(str).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/[\r\n]+/g, '\\n');
+}
+function _icsFold(line) {
+    // RFC 5545: fold lines longer than 75 octets, continuation starts with a space
+    if (line.length <= 75) return line;
+    const parts = [];
+    let i = 0;
+    parts.push(line.slice(0, 75));
+    i = 75;
+    while (i < line.length) {
+        parts.push(' ' + line.slice(i, i + 74));
+        i += 74;
+    }
+    return parts.join('\r\n');
+}
+function _htmlEsc(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function gerarICSSeminario(sem) {
+    const dt = sem.data.replace(/-/g, '');
+    const horario = sem.horario || '14:00';
+    const [hh, mm] = horario.split(':');
+    const dtStart = `${dt}T${hh}${mm}00`;
+    const endHH = String((parseInt(hh, 10) + 2) % 24).padStart(2, '0');
+    const dtEnd = `${dt}T${endHH}${mm}00`;
+    const dataFmt = formatDate(parseDate(sem.data));
+    const summary = `Seminário Acadêmico - ${dataFmt} - ${sem.nomeAluno}`;
+    const horarioStr = sem.horario || '';
+    const tituloArt = sem.tituloArtigo || '';
+    const resumoArt = (sem.resumoArtigo || '').replace(/[\r\n]+/g, ' ');
+    const aviso = 'Os(as) professores(as) que tiverem interesse em receber o projeto de pesquisa previamente para leitura, me solicitar.';
+
+    // DESCRIPTION (texto puro – fallback)
+    const descLines = [
+        `Título: ${summary}`,
+        `Data: ${dataFmt}`,
+        horarioStr ? `Horário: ${horarioStr}` : '',
+        `Apresentador(a): ${sem.nomeAluno}`,
+        `Título do Artigo: ${tituloArt}`,
+        `Resumo: ${resumoArt}`,
+        '',
+        aviso
+    ].filter(l => l !== null && l !== undefined);
+    const descPlano = _icsEscape(descLines.join('\n'));
+
+    // X-ALT-DESC com HTML (Outlook renderiza com negrito)
+    const htmlParts = [
+        `<p><b>Título:</b> ${_htmlEsc(summary)}</p>`,
+        `<p><b>Data:</b> ${_htmlEsc(dataFmt)}</p>`,
+        horarioStr ? `<p><b>Horário:</b> ${_htmlEsc(horarioStr)}</p>` : '',
+        `<p><b>Apresentador(a):</b> ${_htmlEsc(sem.nomeAluno)}</p>`,
+        `<p><b>Título do Artigo:</b> ${_htmlEsc(tituloArt)}</p>`,
+        `<p><b>Resumo:</b> ${_htmlEsc(resumoArt)}</p>`,
+        `<p>&nbsp;</p>`,
+        `<p><b>${_htmlEsc(aviso)}</b></p>`
+    ].filter(Boolean);
+    const html = `<html><body>${htmlParts.join('')}</body></html>`;
+    const xAltDesc = _icsEscape(html);
+
+    const now = new Date();
+    const stamp = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+    const lines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Sistema de Provas//Seminario//PT-BR',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'BEGIN:VEVENT',
+        `UID:${sem.id}@seminarios.local`,
+        `DTSTAMP:${stamp}`,
+        `DTSTART:${dtStart}`,
+        `DTEND:${dtEnd}`,
+        `SUMMARY:${_icsEscape(summary)}`,
+        `DESCRIPTION:${descPlano}`,
+        `X-ALT-DESC;FMTTYPE=text/html:${xAltDesc}`,
+        'END:VEVENT',
+        'END:VCALENDAR'
+    ];
+    return lines.map(_icsFold).join('\r\n');
+}
+
+function baixarICSSeminario(semId) {
+    const sem = getSeminarios().find(s => s.id === semId);
+    if (!sem) return;
+    if (!sem.tituloArtigo || !sem.resumoArtigo) {
+        showToast('Preencha primeiro o título e o resumo (na etapa anterior).', true);
+        return;
+    }
+    const ics = gerarICSSeminario(sem);
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `seminario_${(sem.nomeAluno || 'aluno').replace(/\s+/g, '_')}_${sem.data}.ics`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('Evento .ics baixado! Importe no seu calendário.');
+}
+
+// Modal: registrar Título e Resumo (verif_titulo)
+function abrirModalTituloResumo(semId, key) {
+    const sem = getSeminarios().find(s => s.id === semId);
+    if (!sem) return;
+    if (!canEditItem(sem)) { showToast('Sem permissão para alterar este seminário.', true); return; }
+    document.getElementById('semInfoSemId').value = semId;
+    document.getElementById('semInfoKey').value = key;
+    document.getElementById('semInfoTitulo').value = sem.tituloArtigo || '';
+    document.getElementById('semInfoResumo').value = sem.resumoArtigo || '';
+    document.getElementById('modalSemInfo').classList.add('active');
+}
+function fecharModalTituloResumo() { document.getElementById('modalSemInfo').classList.remove('active'); }
+
+async function salvarTituloResumo() {
+    const semId = document.getElementById('semInfoSemId').value;
+    const key = document.getElementById('semInfoKey').value;
+    const titulo = document.getElementById('semInfoTitulo').value.trim();
+    const resumo = document.getElementById('semInfoResumo').value.trim();
+    if (!titulo || !resumo) { showToast('Preencha o título e o resumo.', true); return; }
+    const arr = getSeminarios();
+    const idx = arr.findIndex(s => s.id === semId);
+    if (idx === -1) return;
+    arr[idx] = { ...arr[idx], tituloArtigo: titulo, resumoArtigo: resumo };
+    await saveSeminarios(arr);
+    const st = getStatus(); st[key] = true;
+    await saveStatus(st);
+    fecharModalTituloResumo();
+    renderTimeline(); renderSeminarios();
+    showToast('Título e resumo salvos. Etapa concluída!');
+}
+
 
 async function salvarSeminario() {
     const data = document.getElementById('semData').value;
@@ -3391,6 +3608,9 @@ function renderSeminarios() {
                 <div style="display:flex; gap:6px;">${botoes}</div>
             </div>
             <div style="font-size:0.83rem; color:#555; margin-bottom:6px;">${dataFmt}${horarioStr}${sem.emailAluno?` · ${escapeHtml(sem.emailAluno)}`:''}</div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
+                <span class="badge" style="${sem.tituloArtigo&&sem.resumoArtigo?'background:#e8f5e9;color:#2e7d32;':'background:#fff3e0;color:#e65100;'}">${sem.tituloArtigo&&sem.resumoArtigo?'✓ Título e Resumo':'⌛ Título/Resumo pendente'}</span>
+            </div>
             ${gruposBadges}
         </div>`;
     }).join('');
