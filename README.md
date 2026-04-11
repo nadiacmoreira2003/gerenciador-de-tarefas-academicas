@@ -162,7 +162,17 @@ service cloud.firestore {
 
 ## 📸 Screenshots
 
-> *(Add screenshots of the task board, email modal, and admin panel here)*
+### Task Board — Real-Time Deadline Tracking (Tarefas)
+<img width="1141" height="815" alt="Captura de Tela 2026-04-11 às 7 00 43 PM" src="https://github.com/user-attachments/assets/556e7a27-5121-4f35-b756-44925e367d3f" />
+
+### Automated Email Generation
+<img width="529" height="394" alt="Captura de Tela 2026-04-11 às 7 05 45 PM" src="https://github.com/user-attachments/assets/cbdb5df8-550b-4a1c-94a6-ae74feaebbd5" />
+
+### Course Registration with Exam Scheduling
+<img width="803" height="638" alt="Captura de Tela 2026-04-11 às 7 06 39 PM" src="https://github.com/user-attachments/assets/39c9ebb4-4501-4a27-95e8-b2d48dd6b4d6" />
+
+### Admin Panel — Users & Work Groups
+<img width="727" height="784" alt="Captura de Tela 2026-04-11 às 7 07 14 PM" src="https://github.com/user-attachments/assets/305b486d-14d5-46be-be73-6f9dd9ef77b4" />
 
 ---
 
@@ -182,7 +192,7 @@ Associate Professor & Graduate Program Coordinator — FUCAPE Business School, B
 PhD in Accounting & Management | MSc & BSc in Mathematics  
 Research: Causal Inference · NLP for Finance · Quantitative Methods
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat-square&logo=linkedin)](https://linkedin.com/in/nadiacmoreira)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat-square&logo=linkedin)]([https://linkedin.com/in/nadiacmoreira](https://www.linkedin.com/in/nadia-cardoso-moreira-302b4220/?locale=pt))
 
 ---
 
