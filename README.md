@@ -192,8 +192,7 @@ Associate Professor & Graduate Program Coordinator — FUCAPE Business School, B
 PhD in Accounting & Management | MSc & BSc in Mathematics  
 Research: Causal Inference · NLP for Finance · Quantitative Methods
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat-square&logo=linkedin)]([https://linkedin.com/in/nadiacmoreira](https://www.linkedin.com/in/nadia-cardoso-moreira-302b4220/?locale=pt))
-
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/nadia-cardoso-moreira-302b4220/?locale=pt)
 ---
 
 ## 📄 License
