@@ -871,7 +871,7 @@
             <div class="form-group"><label>Número de Cópias</label><input type="number" id="bibCopias" min="1" value="30"></div>
         </div>
         <p style="margin-bottom:8px; font-size:0.82rem; color:#666;"><strong>Assunto:</strong> <span id="bibAssunto"></span></p>
-        <textarea id="bibCorpo" readonly style="width:100%; min-height:180px; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:0.9rem; font-family:inherit; line-height:1.5; resize:vertical;"></textarea>
+        <div id="bibCorpo" style="width:100%; min-height:180px; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:0.9rem; font-family:inherit; line-height:1.5; background:#f9f9f9; overflow-y:auto; max-height:300px;"></div>
         <div class="modal-actions">
             <button class="btn btn-secondary btn-sm" onclick="fecharModalBiblioteca()">Fechar</button>
             <button class="btn btn-primary btn-sm" onclick="copiarEmailBiblioteca()">Copiar Texto</button>
@@ -2308,7 +2308,7 @@ function gerarEmailDependencia(evento) {
             break;
         case 'dep_impressao':
             assunto = `Solicitação de Impressão – Prova de Dependência – ${disciplina}`;
-            corpo = `Prezados(as),\n\nSolicito a impressão da prova de dependência conforme dados abaixo:\n\n*Disciplina:* ${disciplina}\n*Professor(a):* ${prof}\n*Data da Prova:* ${dataProva}${horario ? `\n*Horário:* ${horario}` : ''}\n*Modalidade:* ${modalidade}\n*Número de cópias:* ${disc.copias||30}\n\nSegue em anexo o arquivo da prova para impressão.\n\nAtenciosamente,\nCoordenação`;
+            corpo = `Prezado(a),\n\nSolicito a impressão da prova de dependência conforme dados abaixo:\n\n*Disciplina:* ${disciplina}\n*Professor(a):* ${prof}\n*Data da Prova:* ${dataProva}${horario ? `\n*Horário:* ${horario}` : ''}\n*Modalidade:* ${modalidade}\n*Número de cópias:* ${disc.copias||30}\n\nSegue em anexo o arquivo da prova para impressão.\n\nAtenciosamente,\nCoordenação`;
             return { assunto, corpo, para: '' };
         case 'dep_correcao':
             assunto = `Correção de Prova de Dependência – ${disciplina}`;
@@ -3727,12 +3727,18 @@ function atualizarEmailBiblioteca() {
     currentBibEvento.prova.copias = parseInt(document.getElementById('bibCopias').value)||30;
     const email = gerarEmail(currentBibEvento); currentBibEvento.prova.copias = orig;
     document.getElementById('bibAssunto').textContent = email.assunto;
-    document.getElementById('bibCorpo').value = email.corpo;
+    const htmlCorpoBib = email.corpo.split('\n').map(line =>
+        escapeHtml(line).replace(/\*(.*?)\*/g, '<b>$1</b>')
+    ).join('<br>');
+    document.getElementById('bibCorpo').innerHTML = htmlCorpoBib;
 }
 function fecharModalBiblioteca() { document.getElementById('modalBiblioteca').classList.remove('active'); currentBibEvento=null; }
-function copiarEmailBiblioteca() { navigator.clipboard.writeText(document.getElementById('bibCorpo').value).then(() => showToast('Texto copiado!')); }
+function copiarEmailBiblioteca() {
+    const div = document.getElementById('bibCorpo');
+    navigator.clipboard.write([_buildEmailClipboardItem(div)]).then(() => showToast('Texto copiado!')).catch(() => navigator.clipboard.writeText(div.innerText).then(() => showToast('Texto copiado!')));
+}
 function abrirMailtoBiblioteca() {
-    window.open(`mailto:?subject=${encodeURIComponent(document.getElementById('bibAssunto').textContent)}&body=${encodeURIComponent(document.getElementById('bibCorpo').value)}`);
+    window.open(`mailto:?subject=${encodeURIComponent(document.getElementById('bibAssunto').textContent)}&body=${encodeURIComponent(document.getElementById('bibCorpo').innerText)}`);
 }
 
 // ==========================================
