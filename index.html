@@ -3593,6 +3593,7 @@ function renderSeminarios() {
     if (!container) return;
     if (sems.length === 0) { container.innerHTML = '<div class="empty-state"><p>Nenhum seminário cadastrado</p></div>'; return; }
     const ordenados = [...sems].sort((a,b) => (a.data||'').localeCompare(b.data||''));
+    const statusSem = getStatus();
     container.innerHTML = ordenados.map(sem => {
         const dataFmt = sem.data ? formatDate(parseDate(sem.data)) : '—';
         const horarioStr = sem.horario ? ` · ${sem.horario}` : '';
@@ -3602,6 +3603,7 @@ function renderSeminarios() {
         const botoes = podeEditar
             ? `<button class="btn btn-sm" style="background:#e8eaf6; color:#1a237e; border:1px solid #c5cae9; font-weight:600;" onclick="abrirModalEditarGrupos('sem','${sem.id}')">👥 Grupos</button><button class="btn btn-primary btn-sm" onclick="editarSeminario('${sem.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="excluirSeminario('${sem.id}')">Excluir</button>`
             : `<span style="font-size:0.75rem; color:#999;">somente leitura</span>`;
+        const tituloOk = sem.tituloArtigo && sem.resumoArtigo && statusSem[sem.id+'_sem_verif_titulo'];
         return `<div class="dep-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                 <h3>${escapeHtml(sem.nomeAluno)}${criadorTag}</h3>
@@ -3609,7 +3611,7 @@ function renderSeminarios() {
             </div>
             <div style="font-size:0.83rem; color:#555; margin-bottom:6px;">${dataFmt}${horarioStr}${sem.emailAluno?` · ${escapeHtml(sem.emailAluno)}`:''}</div>
             <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
-                <span class="badge" style="${sem.tituloArtigo&&sem.resumoArtigo?'background:#e8f5e9;color:#2e7d32;':'background:#fff3e0;color:#e65100;'}">${sem.tituloArtigo&&sem.resumoArtigo?'✓ Título e Resumo':'⌛ Título/Resumo pendente'}</span>
+                <span class="badge" style="${tituloOk?'background:#e8f5e9;color:#2e7d32;':'background:#fff3e0;color:#e65100;'}">${tituloOk?'✓ Título e Resumo':'⌛ Título/Resumo pendente'}</span>
             </div>
             ${gruposBadges}
         </div>`;
@@ -3693,8 +3695,15 @@ async function desfazerSeminario(semId) {
     const eventos = gerarEventosSeminario(sem);
     const feitos = eventos.filter(ev => st[ev.key]);
     if (feitos.length === 0) return;
-    delete st[feitos[feitos.length-1].key];
-    await saveStatus(st); renderTimeline();
+    const ultimaFeita = feitos[feitos.length-1];
+    delete st[ultimaFeita.key];
+    // Se desfez a etapa de verificar título/resumo, limpar os dados registrados
+    if (ultimaFeita.tipo === 'sem_verif_titulo') {
+        const arr = getSeminarios();
+        const idx = arr.findIndex(s => s.id === semId);
+        if (idx !== -1) { delete arr[idx].tituloArtigo; delete arr[idx].resumoArtigo; await saveSeminarios(arr); }
+    }
+    await saveStatus(st); renderTimeline(); renderSeminarios();
     showToast('Etapa desfeita.');
 }
 
