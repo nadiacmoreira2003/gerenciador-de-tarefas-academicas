@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gerenciamento - Coordenação</title>
+    <title>Gerenciador de Tarefas Acadêmicas</title>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -136,6 +136,20 @@
         .users-table td { padding: 10px 12px; border-bottom: 1px solid #eee; }
         .users-table tr:hover td { background: #f5f5f5; }
         .users-table select, .users-table input { padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.82rem; }
+        .users-table td { vertical-align: middle; }
+        .users-table-wrap { overflow-x: auto; }
+        .users-table .user-name-input { width: 100%; max-width: 240px; }
+        .users-table .user-email { font-size: 0.78rem; color: #666; margin-top: 4px; padding-left: 2px; word-break: break-all; }
+        .users-table tr.user-info-row:not(.is-me) td { border-bottom: none; padding-bottom: 4px; }
+        .users-table tr.user-actions-row td { padding-top: 4px; padding-bottom: 12px; }
+        .users-table tr.user-actions-row:hover td { background: transparent; }
+        .user-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .user-actions .btn { white-space: nowrap; padding: 6px 12px; }
+        .user-actions .spacer { flex: 1; }
+        .btn-outline-danger { background: white; color: #c62828; border: 1px solid #ef9a9a; }
+        .btn-outline-danger:hover { background: #ffebee; }
+        .btn-warning { background: #ef6c00; color: white; }
+        .btn-warning:hover { background: #f57c00; }
         .filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
         .filters input, .filters select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.85rem; }
         .config-bar { background: #e8eaf6; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
@@ -283,8 +297,7 @@
 <!-- Login -->
 <div class="login-overlay hidden" id="loginOverlay">
     <div class="login-box">
-        <h2>Sistema de Gerenciamento</h2>
-        <p class="subtitle">Provas — Coordenação</p>
+        <h2>Gerenciador de Tarefas Acadêmicas</h2>
 
         <!-- Login Form -->
         <div id="loginForm">
@@ -385,7 +398,7 @@
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
             <div>
-                <h1>Sistema de Gerenciamento de Tarefas Acadêmicas</h1>
+                <h1>Gerenciador de Tarefas Acadêmicas</h1>
             </div>
         </div>
         <div class="user-info">
@@ -1158,7 +1171,8 @@ async function enviarResetSenha() {
         if (err.code === 'auth/user-not-found') {
             showLoginError('resetError', 'E-mail não encontrado no sistema.');
         } else {
-            showLoginError('resetError', 'Erro ao enviar. Tente novamente.');
+            console.error('Erro ao enviar reset:', err);
+            showLoginError('resetError', `Erro ao enviar (${err.code || err.message}). Tente novamente.`);
         }
     }
 }
@@ -1437,7 +1451,7 @@ async function adminCriarUsuario() {
 
         hideLoading();
         ultimoUsuarioCriado = { nome, email };
-        const texto = `Olá ${nome},\n\nSua conta foi criada no Sistema de Gerenciamento de Tarefas Acadêmicas.\n\nDados de acesso:\nE-mail: ${email}\nSenha temporária: 123456\n\nAcesse: ${SYSTEM_URL}\n\nNo primeiro acesso você deverá:\n1. Fazer login com a senha temporária (123456)\n2. Criar uma senha pessoal\n\nAtenciosamente,\nCoordenação`;
+        const texto = `Olá ${nome},\n\nSua conta foi criada no Gerenciador de Tarefas Acadêmicas.\n\nDados de acesso:\nE-mail: ${email}\nSenha temporária: 123456\n\nAcesse: ${SYSTEM_URL}\n\nNo primeiro acesso você deverá:\n1. Fazer login com a senha temporária (123456)\n2. Criar uma senha pessoal\n\nAtenciosamente,\nCoordenação`;
         document.getElementById('adminTextoEmail').value = texto;
         document.getElementById('adminTextoCredenciais').style.display = 'block';
         document.getElementById('adminNovoNome').value = '';
@@ -1463,6 +1477,10 @@ async function adminCriarUsuario() {
                         return;
                     }
                 }
+                if (snap.empty) {
+                    showToast('Este e-mail pertence a um usuário excluído. Para recadastrá-lo, apague-o antes no Console do Firebase (Authentication → Users).', true);
+                    return;
+                }
             } catch(e) {}
             showToast('Este e-mail já está cadastrado e ativo.', true);
         } else {
@@ -1476,7 +1494,7 @@ function copiarTextoCredenciais() {
 }
 function abrirMailtoCredenciais() {
     if (!ultimoUsuarioCriado) return;
-    const assunto = encodeURIComponent('Acesso ao Sistema de Gerenciamento de Tarefas Acadêmicas');
+    const assunto = encodeURIComponent('Acesso ao Gerenciador de Tarefas Acadêmicas');
     const corpo = encodeURIComponent(document.getElementById('adminTextoEmail').value);
     window.open(`mailto:${ultimoUsuarioCriado.email}?subject=${assunto}&body=${corpo}`);
 }
@@ -1488,21 +1506,29 @@ async function renderAdminUsuarios() {
         const snapshot = await db.collection('users').get();
         const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (users.length === 0) { container.innerHTML = '<div class="empty-state"><p>Nenhum usuário cadastrado</p></div>'; return; }
-        let html = `<table class="users-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Nível</th><th>Status</th><th>Ações</th></tr></thead><tbody>`;
+        let html = `<div class="users-table-wrap"><table class="users-table"><thead><tr><th>Nome / E-mail</th><th>Nível</th><th>Status</th></tr></thead><tbody>`;
         users.forEach(u => {
             const isMe = u.id === currentUser.uid;
-            html += `<tr>
-                <td>${isMe ? `<input type="text" value="${escapeHtml(u.nome)}" id="adminNome_${u.id}" style="width:140px;" disabled>` : `<input type="text" value="${escapeHtml(u.nome)}" id="adminNome_${u.id}" style="width:140px;">`}</td>
-                <td>${escapeHtml(u.email)}</td>
+            html += `<tr class="user-info-row${isMe ? ' is-me' : ''}">
+                <td><input type="text" value="${escapeHtml(u.nome)}" id="adminNome_${u.id}" class="user-name-input" ${isMe ? 'disabled' : ''}>
+                    <div class="user-email">${escapeHtml(u.email)}</div></td>
                 <td><select id="adminRole_${u.id}" ${isMe ? 'disabled' : ''}>
                     <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
                     <option value="convidado" ${u.role!=='admin'?'selected':''}>Coordenador</option>
                 </select></td>
                 <td>${u.active === false ? '<span class="badge badge-overdue">Desativado</span>' : u.mustChangePassword ? '<span class="badge badge-pending">Pendente</span>' : '<span class="badge badge-done">Ativo</span>'}</td>
-                <td>${!isMe ? `<button class="btn btn-primary btn-sm" onclick="adminSalvarUsuario('${u.id}')">Salvar</button> <button class="btn btn-secondary btn-sm" onclick="adminResetarSenha('${u.id}')">Resetar Senha</button> <button class="btn btn-danger btn-sm" onclick="adminExcluirUsuario('${u.id}', '${escapeHtml(u.nome)}')">Desativar</button>` : '—'}</td>
             </tr>`;
+            if (!isMe) html += `<tr class="user-actions-row"><td colspan="3"><div class="user-actions">
+                    <button class="btn btn-primary btn-sm" onclick="adminSalvarUsuario('${u.id}')" title="Salvar nome e nível">Salvar</button>
+                    <button class="btn btn-secondary btn-sm" onclick="adminResetarSenha('${u.id}')" title="Enviar link de redefinição de senha">Resetar Senha</button>
+                    <span class="spacer"></span>
+                    ${u.active === false
+                        ? `<button class="btn btn-success btn-sm" onclick="adminReativarUsuario('${u.id}')" title="Permitir novamente o acesso">Reativar</button>`
+                        : `<button class="btn btn-warning btn-sm" onclick="adminDesativarUsuario('${u.id}')" title="Bloquear o acesso sem apagar dados">Desativar</button>`}
+                    <button class="btn btn-outline-danger btn-sm" onclick="adminExcluirUsuario('${u.id}')" title="Excluir definitivamente">🗑 Excluir</button>
+                </div></td></tr>`;
         });
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
         container.innerHTML = html;
     } catch (err) { container.innerHTML = '<p style="color:red; padding:10px;">Erro ao carregar usuários.</p>'; }
 }
@@ -1517,8 +1543,14 @@ async function adminSalvarUsuario(uid) {
     } catch (err) { showToast('Erro ao atualizar.', true); }
 }
 
-async function adminExcluirUsuario(uid, nome) {
-    if (!confirm(`Desativar o usuário "${nome}"?\n\nEle não conseguirá mais acessar o sistema. Você poderá reativá-lo cadastrando o mesmo e-mail novamente.`)) return;
+function adminNomeUsuario(uid) {
+    const u = cachedAllUsers.find(x => x.id === uid);
+    return u?.nome || document.getElementById('adminNome_' + uid)?.value || 'usuário';
+}
+
+async function adminDesativarUsuario(uid) {
+    const nome = adminNomeUsuario(uid);
+    if (!confirm(`Desativar o usuário "${nome}"?\n\nEle não conseguirá mais acessar o sistema. Os dados dele são mantidos e você poderá reativá-lo depois.`)) return;
     try {
         await db.collection('users').doc(uid).update({ active: false });
         showToast(`Usuário ${nome} desativado.`);
@@ -1528,17 +1560,62 @@ async function adminExcluirUsuario(uid, nome) {
     }
 }
 
+async function adminReativarUsuario(uid) {
+    const nome = adminNomeUsuario(uid);
+    try {
+        await db.collection('users').doc(uid).update({
+            active: true,
+            reativadoEm: firebase.firestore.FieldValue.serverTimestamp(), reativadoPor: currentUser.uid
+        });
+        showToast(`Usuário ${nome} reativado.`);
+        renderAdminUsuarios();
+    } catch (err) {
+        showToast('Erro ao reativar usuário.', true);
+    }
+}
+
+async function adminExcluirUsuario(uid) {
+    if (currentUserProfile?.role !== 'admin') { showToast('Apenas administradores podem excluir usuários.', true); return; }
+    if (uid === currentUser.uid) { showToast('Você não pode excluir a sua própria conta.', true); return; }
+    const nome = adminNomeUsuario(uid);
+    if (!confirm(`EXCLUIR definitivamente o usuário "${nome}"?\n\nIsso apaga o perfil, remove o usuário de todos os grupos e apaga as disciplinas, proficiências, dependências e seminários cadastrados por ele.\n\nEsta ação não pode ser desfeita. Se quiser apenas bloquear o acesso, use "Desativar".`)) return;
+    showLoading('Excluindo usuário...');
+    try {
+        const batch = db.batch();
+        const gruposSnap = await db.collection('groups').where('members', 'array-contains', uid).get();
+        gruposSnap.forEach(g => batch.update(g.ref, { members: firebase.firestore.FieldValue.arrayRemove(uid) }));
+        batch.delete(db.collection('userData').doc(uid));
+        batch.delete(db.collection('users').doc(uid));
+        await batch.commit();
+        hideLoading();
+        showToast(`Usuário ${nome} excluído.`);
+        cachedAllUsers = cachedAllUsers.filter(u => u.id !== uid);
+        await loadGroups();
+        renderAdminUsuarios();
+        renderAdminGrupos();
+    } catch (err) {
+        hideLoading();
+        showToast('Erro ao excluir usuário: ' + err.message, true);
+    }
+}
+
 async function adminResetarSenha(uid) {
     if (!confirm('Resetar a senha envia um link de redefinição para o e-mail do usuário. Continuar?')) return;
+    showLoading('Enviando link...');
     try {
         const userDoc = await db.collection('users').doc(uid).get();
-        if (!userDoc.exists) { showToast('Usuário não encontrado.', true); return; }
+        if (!userDoc.exists) { hideLoading(); showToast('Usuário não encontrado.', true); return; }
         const email = userDoc.data().email;
         await auth.sendPasswordResetEmail(email);
         await db.collection('users').doc(uid).update({ mustChangePassword: true });
-        showToast(`Link de redefinição enviado para ${email}!`);
+        hideLoading();
+        alert(`Link de redefinição enviado para ${email}.\n\nO e-mail vem de noreply@gerenciador-de-provas.firebaseapp.com. Se não chegar em alguns minutos, peça para verificar a caixa de Spam/Lixo eletrônico ou a quarentena do e-mail institucional.`);
         renderAdminUsuarios();
-    } catch (err) { showToast('Erro: ' + err.message, true); }
+    } catch (err) {
+        hideLoading();
+        console.error('Erro ao resetar senha:', err);
+        alert(`Não foi possível enviar o link.\n\nCódigo: ${err.code || '-'}\n${err.message}`);
+    }
 }
 
 // ==========================================
