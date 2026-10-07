@@ -132,17 +132,17 @@
         .role-admin { background: #fff3e0; color: #e65100; }
         .role-user { background: #e8eaf6; color: #1a237e; }
         .users-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .users-table th { background: #1a237e; color: white; padding: 10px 12px; text-align: left; font-size: 0.78rem; text-transform: uppercase; }
-        .users-table td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+        .users-table th { background: #1a237e; color: white; padding: 10px 8px; text-align: left; font-size: 0.78rem; text-transform: uppercase; }
+        .users-table td { padding: 10px 8px; border-bottom: 1px solid #eee; }
         .users-table tr:hover td { background: #f5f5f5; }
         .users-table select, .users-table input { padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.82rem; }
         .users-table td { vertical-align: middle; }
         .users-table-wrap { overflow-x: auto; }
-        .users-table .user-name-input { width: 100%; min-width: 120px; border-color: transparent; background: transparent; font-size: 0.85rem; }
+        .users-table .user-name-input { width: 100%; min-width: 165px; border-color: transparent; background: transparent; font-size: 0.85rem; }
         .users-table .user-name-input:not(:disabled):hover, .users-table .user-name-input:focus { border-color: #c5cae9; background: white; outline: none; }
-        .users-table .user-email { color: #555; word-break: break-all; }
+        .users-table .user-email { color: #555; white-space: nowrap; }
         .users-table .user-action-cell { width: 1%; white-space: nowrap; padding-left: 4px; padding-right: 4px; }
-        .btn-user { background: white; color: #1a237e; border: 1px solid #9fa8da; width: 92px; padding: 6px 0; text-align: center; }
+        .btn-user { background: white; color: #1a237e; border: 1px solid #9fa8da; width: 100px; padding: 6px 0; text-align: center; }
         .btn-user:hover { background: #e8eaf6; }
         .user-status { font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
         .user-status.ativo { color: #1a237e; }
@@ -1512,7 +1512,7 @@ async function renderAdminUsuarios() {
         const snapshot = await db.collection('users').get({ source: 'server' });
         const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (users.length === 0) { container.innerHTML = '<div class="empty-state"><p>Nenhum usuário cadastrado</p></div>'; return; }
-        let html = `<div class="users-table-wrap"><table class="users-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Nível</th><th>Status</th><th></th><th></th></tr></thead><tbody>`;
+        let html = `<div class="users-table-wrap"><table class="users-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Nível</th><th>Status</th><th></th><th></th><th></th></tr></thead><tbody>`;
         users.forEach(u => {
             const isMe = u.id === currentUser.uid;
             const status = u.active === false ? '<span class="user-status desativado">Desativado</span>'
@@ -1526,6 +1526,7 @@ async function renderAdminUsuarios() {
                     <option value="convidado" ${u.role!=='admin'?'selected':''}>Coordenador</option>
                 </select></td>
                 <td>${status}</td>
+                <td class="user-action-cell">${isMe ? '' : `<button class="btn btn-sm btn-user" onclick="adminResetarSenha('${u.id}')">Resetar Senha</button>`}</td>
                 <td class="user-action-cell">${isMe ? '' : u.active === false
                     ? `<button class="btn btn-sm btn-user" onclick="adminReativarUsuario('${u.id}')">Ativar</button>`
                     : `<button class="btn btn-sm btn-user" onclick="adminDesativarUsuario('${u.id}')">Desativar</button>`}</td>
