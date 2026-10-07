@@ -138,18 +138,16 @@
         .users-table select, .users-table input { padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.82rem; }
         .users-table td { vertical-align: middle; }
         .users-table-wrap { overflow-x: auto; }
-        .users-table .user-name-input { width: 100%; max-width: 240px; }
-        .users-table .user-email { font-size: 0.78rem; color: #666; margin-top: 4px; padding-left: 2px; word-break: break-all; }
-        .users-table tr.user-info-row:not(.is-me) td { border-bottom: none; padding-bottom: 4px; }
-        .users-table tr.user-actions-row td { padding-top: 4px; padding-bottom: 12px; }
-        .users-table tr.user-actions-row:hover td { background: transparent; }
-        .user-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-        .user-actions .btn { white-space: nowrap; padding: 6px 12px; }
-        .user-actions .spacer { flex: 1; }
-        .btn-outline-danger { background: white; color: #c62828; border: 1px solid #ef9a9a; }
-        .btn-outline-danger:hover { background: #ffebee; }
-        .btn-warning { background: #ef6c00; color: white; }
-        .btn-warning:hover { background: #f57c00; }
+        .users-table .user-name-input { width: 100%; min-width: 120px; border-color: transparent; background: transparent; font-size: 0.85rem; }
+        .users-table .user-name-input:not(:disabled):hover, .users-table .user-name-input:focus { border-color: #c5cae9; background: white; outline: none; }
+        .users-table .user-email { color: #555; word-break: break-all; }
+        .users-table .user-action-cell { width: 1%; white-space: nowrap; padding-left: 4px; padding-right: 4px; }
+        .btn-user { background: white; color: #1a237e; border: 1px solid #9fa8da; width: 92px; padding: 6px 0; text-align: center; }
+        .btn-user:hover { background: #e8eaf6; }
+        .user-status { font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+        .user-status.ativo { color: #1a237e; }
+        .user-status.pendente { color: #424242; }
+        .user-status.desativado { color: #9fa8da; }
         .filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
         .filters input, .filters select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.85rem; }
         .config-bar { background: #e8eaf6; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
@@ -1049,6 +1047,7 @@ const db = firebase.firestore();
 // ==========================================
 let currentUser = null;
 let currentUserProfile = null;
+let loginComSenhaPessoal = false;  // true quando o login foi feito com senha diferente da temporária
 let cachedEmailBib = '';
 let ultimoUsuarioCriado = null;
 // Grupos de Trabalho
@@ -1096,6 +1095,11 @@ auth.onAuthStateChanged(async (user) => {
                 mostrarTelaLogin();
                 showLoginError('loginError', 'Conta desativada. Entre em contato com o administrador.');
                 return;
+            }
+            if (currentUserProfile.mustChangePassword && loginComSenhaPessoal) {
+                // Já redefiniu a senha (ex.: pelo link do e-mail): não precisa trocar de novo
+                await db.collection('users').doc(user.uid).update({ mustChangePassword: false });
+                currentUserProfile.mustChangePassword = false;
             }
             if (currentUserProfile.mustChangePassword) {
                 hideLoading();
@@ -1239,6 +1243,7 @@ async function fazerLogin() {
     hideMsg('loginError');
     if (!email || !senha) { showLoginError('loginError', 'Preencha e-mail e senha.'); return; }
     showLoading('Entrando...');
+    loginComSenhaPessoal = senha !== '123456';
     try {
         await auth.signInWithEmailAndPassword(email, senha);
     } catch (err) {
@@ -1503,34 +1508,36 @@ async function renderAdminUsuarios() {
     const container = document.getElementById('adminListaUsuarios');
     container.innerHTML = '<p style="padding:10px; color:#666;">Carregando...</p>';
     try {
-        const snapshot = await db.collection('users').get();
+        // Busca direto do servidor: sem conexão, o cache local vem vazio e pareceria que não há usuários
+        const snapshot = await db.collection('users').get({ source: 'server' });
         const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (users.length === 0) { container.innerHTML = '<div class="empty-state"><p>Nenhum usuário cadastrado</p></div>'; return; }
-        let html = `<div class="users-table-wrap"><table class="users-table"><thead><tr><th>Nome / E-mail</th><th>Nível</th><th>Status</th></tr></thead><tbody>`;
+        let html = `<div class="users-table-wrap"><table class="users-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Nível</th><th>Status</th><th></th><th></th></tr></thead><tbody>`;
         users.forEach(u => {
             const isMe = u.id === currentUser.uid;
-            html += `<tr class="user-info-row${isMe ? ' is-me' : ''}">
-                <td><input type="text" value="${escapeHtml(u.nome)}" id="adminNome_${u.id}" class="user-name-input" ${isMe ? 'disabled' : ''}>
-                    <div class="user-email">${escapeHtml(u.email)}</div></td>
-                <td><select id="adminRole_${u.id}" ${isMe ? 'disabled' : ''}>
+            const status = u.active === false ? '<span class="user-status desativado">Desativado</span>'
+                : u.mustChangePassword ? '<span class="user-status pendente">Pendente</span>'
+                : '<span class="user-status ativo">Ativo</span>';
+            html += `<tr>
+                <td><input type="text" value="${escapeHtml(u.nome)}" id="adminNome_${u.id}" class="user-name-input" ${isMe ? 'disabled' : `onchange="adminSalvarUsuario('${u.id}')"`} title="${isMe ? '' : 'Clique para editar'}"></td>
+                <td class="user-email">${escapeHtml(u.email)}</td>
+                <td><select id="adminRole_${u.id}" ${isMe ? 'disabled' : `onchange="adminSalvarUsuario('${u.id}')"`}>
                     <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
                     <option value="convidado" ${u.role!=='admin'?'selected':''}>Coordenador</option>
                 </select></td>
-                <td>${u.active === false ? '<span class="badge badge-overdue">Desativado</span>' : u.mustChangePassword ? '<span class="badge badge-pending">Pendente</span>' : '<span class="badge badge-done">Ativo</span>'}</td>
+                <td>${status}</td>
+                <td class="user-action-cell">${isMe ? '' : u.active === false
+                    ? `<button class="btn btn-sm btn-user" onclick="adminReativarUsuario('${u.id}')">Ativar</button>`
+                    : `<button class="btn btn-sm btn-user" onclick="adminDesativarUsuario('${u.id}')">Desativar</button>`}</td>
+                <td class="user-action-cell">${isMe ? '' : `<button class="btn btn-sm btn-user" onclick="adminExcluirUsuario('${u.id}')">Excluir</button>`}</td>
             </tr>`;
-            if (!isMe) html += `<tr class="user-actions-row"><td colspan="3"><div class="user-actions">
-                    <button class="btn btn-primary btn-sm" onclick="adminSalvarUsuario('${u.id}')" title="Salvar nome e nível">Salvar</button>
-                    <button class="btn btn-secondary btn-sm" onclick="adminResetarSenha('${u.id}')" title="Enviar link de redefinição de senha">Resetar Senha</button>
-                    <span class="spacer"></span>
-                    ${u.active === false
-                        ? `<button class="btn btn-success btn-sm" onclick="adminReativarUsuario('${u.id}')" title="Permitir novamente o acesso">Reativar</button>`
-                        : `<button class="btn btn-warning btn-sm" onclick="adminDesativarUsuario('${u.id}')" title="Bloquear o acesso sem apagar dados">Desativar</button>`}
-                    <button class="btn btn-outline-danger btn-sm" onclick="adminExcluirUsuario('${u.id}')" title="Excluir definitivamente">🗑 Excluir</button>
-                </div></td></tr>`;
         });
         html += '</tbody></table></div>';
         container.innerHTML = html;
-    } catch (err) { container.innerHTML = '<p style="color:red; padding:10px;">Erro ao carregar usuários.</p>'; }
+    } catch (err) {
+        console.error('Erro ao carregar usuários:', err);
+        container.innerHTML = '<p style="color:red; padding:10px;">Não foi possível carregar os usuários (sem conexão com o servidor). Recarregue a página.</p>';
+    }
 }
 
 async function adminSalvarUsuario(uid) {
@@ -1539,7 +1546,9 @@ async function adminSalvarUsuario(uid) {
     if (!novoNome) { showToast('Nome não pode estar vazio.', true); return; }
     try {
         await db.collection('users').doc(uid).update({ nome: novoNome, role: novoRole });
-        showToast('Dados atualizados!'); renderAdminUsuarios();
+        const cached = cachedAllUsers.find(u => u.id === uid);
+        if (cached) { cached.nome = novoNome; cached.role = novoRole; }
+        showToast('Alteração salva.');
     } catch (err) { showToast('Erro ao atualizar.', true); }
 }
 
